@@ -4,7 +4,8 @@ import { site } from '../data.js'
 import Icon from './Icon.vue'
 
 const form = reactive({ nom: '', email: '', telephone: '', message: '' })
-const sent = ref(false)
+const status = ref('') // '' | 'sending' | 'sent' | 'error'
+const errorMsg = ref('')
 
 const contactItems = [
   { icon: 'mapPin', label: 'Siège social', titre: site.siege, texte: site.bp },
@@ -13,13 +14,29 @@ const contactItems = [
   { icon: 'landmark', label: 'Références', titre: site.recu }
 ]
 
-const submit = () => {
-  sent.value = true
-  form.nom = ''
-  form.email = ''
-  form.telephone = ''
-  form.message = ''
-  setTimeout(() => (sent.value = false), 6000)
+const submit = async () => {
+  if (status.value === 'sending') return
+  status.value = 'sending'
+  errorMsg.value = ''
+  try {
+    const res = await fetch('/api/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...form })
+    })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) throw new Error(data.error || 'Erreur inconnue')
+    status.value = 'sent'
+    form.nom = ''
+    form.email = ''
+    form.telephone = ''
+    form.message = ''
+    setTimeout(() => (status.value = ''), 8000)
+  } catch (e) {
+    status.value = 'error'
+    errorMsg.value = e.message
+    setTimeout(() => (status.value = ''), 8000)
+  }
 }
 </script>
 
@@ -85,12 +102,16 @@ const submit = () => {
               <textarea id="message" v-model="form.message" required placeholder="Écrivez votre message ici..."></textarea>
             </div>
           </div>
-          <button type="submit" class="btn btn--primary" style="margin-top: 24px; width: 100%; justify-content: center">
-            Envoyer le message
-            <Icon name="send" :size="18" />
+          <button type="submit" class="btn btn--primary" style="margin-top: 24px; width: 100%; justify-content: center" :disabled="status === 'sending'">
+            <template v-if="status === 'sending'">Envoi en cours…</template>
+            <template v-else>Envoyer le message</template>
+            <Icon v-if="status !== 'sending'" name="send" :size="18" />
           </button>
-          <p v-if="sent" class="form-success">
-            ✓ Merci ! Votre message a bien été pris en compte. Nous vous répondrons rapidement.
+          <p v-if="status === 'sent'" class="form-success">
+            ✓ Merci ! Votre message a bien été envoyé à REGARD FRATERNEL. Nous vous répondrons rapidement.
+          </p>
+          <p v-else-if="status === 'error'" class="form-error">
+            ✗ {{ errorMsg }}
           </p>
         </form>
       </div>

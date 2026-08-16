@@ -1519,6 +1519,23 @@ ul {
   font-size: 0.92rem;
 }
 
+.form-error {
+  margin-top: 18px;
+  padding: 14px 18px;
+  border-radius: var(--radius-sm);
+  background: #fdecea;
+  color: #b3261e;
+  font-weight: 500;
+  font-size: 0.92rem;
+}
+
+.btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
 /* ---------- Footer ---------- */
 
 .footer {
