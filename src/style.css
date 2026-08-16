@@ -2054,6 +2054,73 @@ ul {
   color: var(--terracotta-600);
 }
 
+/* ---------- Page de chargement des galeries ---------- */
+
+.gallery-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 320px;
+  padding: 40px 20px;
+  text-align: center;
+  background: var(--white);
+  border: 1px solid var(--sand-200);
+  border-radius: var(--radius-md);
+}
+
+.gallery-loading__spinner {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 3px solid var(--sand-200);
+  border-top-color: var(--forest-600);
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.gallery-loading__title {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--forest-900);
+  margin-top: 8px;
+}
+
+.gallery-loading__count {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--terracotta-600);
+}
+
+.gallery-loading__bar {
+  width: min(320px, 80%);
+  height: 8px;
+  border-radius: 999px;
+  background: var(--sand-200);
+  overflow: hidden;
+  margin-top: 6px;
+}
+
+.gallery-loading__bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--forest-600), var(--terracotta-500));
+  transition: width 0.25s ease;
+}
+
+.gallery-loading__hint {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  margin-top: 6px;
+}
+
 /* ---------- Légendes des galeries ---------- */
 
 .gallery__caption {

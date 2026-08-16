@@ -26,13 +26,43 @@ const openLightbox = (i) => {
   lightboxOpen.value = true
 }
 
-watch(
-  () => programme.value?.photos,
-  async (cle) => {
-    photos.value = cle ? await getPhotos(cle) : []
-  },
-  { immediate: true }
-)
+/* ---------- Chargement de la galerie ---------- */
+const galleryLoading = ref(true)
+const loadProgress = ref(0)
+
+// Précharge toutes les miniatures de la galerie, puis affiche.
+// Au 2ᵉ passage, le Service Worker renvoie les images depuis le cache → quasi instantané.
+const loadGallery = async (cle) => {
+  galleryLoading.value = true
+  loadProgress.value = 0
+  photos.value = cle ? await getPhotos(cle) : []
+
+  const total = photos.value.length
+  if (!total) {
+    galleryLoading.value = false
+    return
+  }
+
+  let done = 0
+  await Promise.all(
+    photos.value.map(
+      (p) =>
+        new Promise((resolve) => {
+          const img = new Image()
+          img.onload = img.onerror = () => {
+            done++
+            loadProgress.value = Math.round((done / total) * 100)
+            resolve()
+          }
+          img.src = photoUrl(p.url, 480)
+        })
+    )
+  )
+
+  galleryLoading.value = false
+}
+
+watch(() => programme.value?.photos, loadGallery, { immediate: true })
 </script>
 
 <template>
@@ -70,7 +100,19 @@ watch(
             </div>
           </div>
 
-          <div class="gallery reveal" v-reveal style="--reveal-delay: 120ms">
+          <!-- Page de chargement de la galerie -->
+          <div v-if="galleryLoading" class="gallery-loading">
+            <div class="gallery-loading__spinner"></div>
+            <p class="gallery-loading__title">Chargement des photos…</p>
+            <p class="gallery-loading__count">{{ loadProgress }} %</p>
+            <div class="gallery-loading__bar">
+              <div class="gallery-loading__bar-fill" :style="{ width: loadProgress + '%' }"></div>
+            </div>
+            <p class="gallery-loading__hint">Les photos sont préparées pour un affichage rapide.</p>
+          </div>
+
+          <!-- Galerie -->
+          <div v-else class="gallery reveal" v-reveal style="--reveal-delay: 120ms">
             <figure
               v-for="(photo, i) in photos"
               :key="photo.id || photo.url"
