@@ -22,11 +22,14 @@ export default defineConfig({
         ]
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,jpg,svg,woff2}'],
-        // Toujours vérifier le réseau pour les pages (évite de servir une version
-        // obsolète après un redéploiement — cause des boutons de navigation morts)
-        navigateFallback: '/index.html',
-        navigateFallbackDenylist: [/^\/(?:assets|images|docs|logo\.png|logo-light\.png|manifest\.webmanifest|sw\.js|workbox-)/],
+        // ⚠️ PAS de navigateFallback et PAS de HTML dans le precache : le site
+        // utilise le hash routing (#/...), donc la navigation doit TOUJOURS
+        // charger index.html depuis le réseau (jamais une version obsolète en
+        // cache après un redéploiement — cause des boutons de navigation morts).
+        globPatterns: ['**/*.{js,css,ico,png,jpg,svg,woff2}'],
+        // Désactive le fallback de navigation du precache (CacheFirst sur
+        // index.html) : le plugin en met un par défaut.
+        navigateFallback: null,
         runtimeCaching: [
           {
             // Pages : réseau d'abord, cache en secours → la navigation reste

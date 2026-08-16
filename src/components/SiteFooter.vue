@@ -83,7 +83,6 @@ const contact = [
 
       <div class="footer__bottom">
         <p>© {{ new Date().getFullYear() }} REGARD FRATERNEL — Organisation Non Gouvernementale. Tous droits réservés.</p>
-        <p>{{ site.recu }} · <RouterLink to="/admin" class="footer__admin">Espace admin</RouterLink></p>
       </div>
     </div>
   </footer>
