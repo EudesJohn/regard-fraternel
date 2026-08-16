@@ -23,7 +23,21 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,jpg,svg,woff2}'],
+        // Toujours vérifier le réseau pour les pages (évite de servir une version
+        // obsolète après un redéploiement — cause des boutons de navigation morts)
+        navigateFallback: '/index.html',
+        navigateFallbackDenylist: [/^\/(?:assets|images|docs|logo\.png|logo-light\.png|manifest\.webmanifest|sw\.js|workbox-)/],
         runtimeCaching: [
+          {
+            // Pages : réseau d'abord, cache en secours → la navigation reste
+            // toujours fonctionnelle après chaque mise à jour du site
+            urlPattern: ({ request }) => request.mode === 'navigate',
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'pages',
+              networkTimeoutSeconds: 4
+            }
+          },
           {
             // Images Supabase (bucket photos) — cache 1 an, jamais rechargées si présentes
             urlPattern: /^https:\/\/[a-z0-9]+\.supabase\.co\/storage\/v1\/object\/public\/photos\/.*/i,
