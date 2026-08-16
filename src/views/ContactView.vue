@@ -8,18 +8,32 @@ const form = reactive({ nom: '', email: '', telephone: '', message: '' })
 const status = ref('') // '' | 'sending' | 'sent' | 'error'
 const errorMsg = ref('')
 
+// Envoi direct à FormSubmit (gratuit, illimité, sans clé API) : l'e-mail
+// arrive à l'ONG bien structuré en tableau (_template: table).
+const FORM_ENDPOINT = 'https://formsubmit.co/ajax/ongregardfraternel13@gmail.com'
+
 const submit = async () => {
   if (status.value === 'sending') return
   status.value = 'sending'
   errorMsg.value = ''
   try {
-    const res = await fetch('/api/contact', {
+    const res = await fetch(FORM_ENDPOINT, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...form })
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({
+        'Nom complet': form.nom,
+        'E-mail': form.email,
+        'Téléphone': form.telephone || 'Non renseigné',
+        'Message': form.message,
+        _template: 'table',
+        _subject: `Nouveau message du site REGARD FRATERNEL — ${form.nom}`,
+        _captcha: 'false'
+      })
     })
     const data = await res.json().catch(() => ({}))
-    if (!res.ok) throw new Error(data.error || 'Erreur inconnue')
+    if (!res.ok || data.success !== 'true') {
+      throw new Error(data.message || "L'envoi a échoué, réessayez plus tard.")
+    }
     status.value = 'sent'
     form.nom = ''
     form.email = ''
