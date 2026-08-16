@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { site, programmes, objectifs } from '../data.js'
-import { getPhotos } from '../lib/photos.js'
+import { getPhotos, photoUrl } from '../lib/photos.js'
 import Icon from '../components/Icon.vue'
 
 const defaultSlides = [
@@ -26,6 +26,15 @@ const nextSlide = () => {
   slide.value = (slide.value + 1) % heroSlides.value.length
 }
 
+const heroLoaded = ref(false)
+
+// Précharge une image (pleine taille pour le diaporama, miniature pour les grilles)
+const preloadImage = (url) => {
+  if (!url) return
+  const img = new Image()
+  img.src = url
+}
+
 onMounted(async () => {
   // Diaporama d'accueil géré depuis Supabase (section « hero »)
   const heroPhotos = await getPhotos('hero')
@@ -36,6 +45,10 @@ onMounted(async () => {
       title: p.caption || (i === 0 ? 'REGARD FRATERNEL' : 'Des actions concrètes'),
       span: i === 0 ? 'des vies humaines sauvées' : 'au service des communautés'
     }))
+    // Précharge la 1ʳᵉ diapositive (la plus importante) et les suivantes en miniature
+    preloadImage(heroSlides.value[0].image)
+    heroSlides.value.slice(1).forEach((s) => preloadImage(photoUrl(s.image, 1200)))
+    heroLoaded.value = true
   }
 
   // Galerie des partenaires (section « partenaires »)
@@ -249,7 +262,7 @@ const stats = [
             class="gallery__item"
             :class="{ 'gallery__item--tall': i % 5 === 2 }"
           >
-            <img :src="photo.url" :alt="photo.caption || 'Nos partenaires'" loading="lazy" />
+            <img :src="photoUrl(photo.url, 480)" :alt="photo.caption || 'Nos partenaires'" loading="lazy" />
             <figcaption v-if="photo.caption" class="gallery__caption">{{ photo.caption }}</figcaption>
           </figure>
         </div>

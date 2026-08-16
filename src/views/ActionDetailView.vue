@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { programmes } from '../data.js'
-import { getPhotos } from '../lib/photos.js'
+import { getPhotos, photoUrl } from '../lib/photos.js'
 import PageHeader from '../components/PageHeader.vue'
 import PhotoLightbox from '../components/PhotoLightbox.vue'
 import Icon from '../components/Icon.vue'
@@ -78,7 +78,7 @@ watch(
               :class="{ 'gallery__item--tall': i % 5 === 2 }"
               @click="openLightbox(i)"
             >
-              <img :src="photo.url" :alt="photo.caption || `${programme.titre} — photo ${i + 1}`" loading="lazy" />
+              <img :src="photoUrl(photo.url, 480)" :alt="photo.caption || `${programme.titre} — photo ${i + 1}`" loading="lazy" />
               <figcaption v-if="photo.caption" class="gallery__caption">{{ photo.caption }}</figcaption>
               <span class="gallery__zoom" aria-hidden="true"><Icon name="zoomIn" :size="26" /></span>
             </figure>

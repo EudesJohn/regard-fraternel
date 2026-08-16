@@ -21,6 +21,17 @@ export const sectionLabel = (cle) => {
 const BUCKET = 'photos'
 
 /**
+ * Version optimisée d'une URL d'image Supabase (redimensionnement à la volée).
+ * Les grilles chargent une miniature légère ; la lightbox utilise l'original.
+ * Ne modifie pas les autres URLs (images locales de mise en page).
+ */
+export function photoUrl(url, width = 500) {
+  if (!url || !url.includes('/storage/v1/object/public/')) return url
+  const sep = url.includes('?') ? '&' : '?'
+  return `${url}${sep}width=${width}&quality=70&resize=contain`
+}
+
+/**
  * Photos d'une section pour l'affichage public (depuis Supabase).
  * Retourne [] si Supabase n'est pas configuré ou en erreur.
  */

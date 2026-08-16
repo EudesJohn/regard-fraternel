@@ -861,7 +861,15 @@ ul {
   overflow: hidden;
   cursor: pointer;
   aspect-ratio: 4 / 3;
-  background: var(--sand-200);
+  background: linear-gradient(110deg, var(--sand-200) 8%, var(--sand-100) 18%, var(--sand-200) 33%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
 }
 
 .gallery__item--tall {
