@@ -2367,6 +2367,22 @@ ul {
   font-size: 0.85rem;
 }
 
+.btn--danger {
+  background: #b3261e;
+  border: 1.5px solid #b3261e;
+  color: var(--white);
+}
+
+.btn--danger:hover {
+  background: #93211a;
+  border-color: #93211a;
+}
+
+.btn--danger:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* ---------- Transition de page ---------- */
 
 .page-enter-active,

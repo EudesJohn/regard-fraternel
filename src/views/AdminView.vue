@@ -71,10 +71,20 @@ const signIn = async () => {
   }
 }
 
+const signingOut = ref(false)
+
 const signOut = async () => {
-  await supabase.auth.signOut()
-  session.value = null
-  photos.value = []
+  if (signingOut.value) return
+  signingOut.value = true
+  try {
+    await supabase.auth.signOut()
+    session.value = null
+    photos.value = []
+    email.value = ''
+    password.value = ''
+  } finally {
+    signingOut.value = false
+  }
 }
 
 /* ---------- Gestion des photos ---------- */
@@ -223,10 +233,6 @@ VITE_SUPABASE_ANON_KEY=eyJ...</pre>
           <Icon name="arrowRight" :size="18" />
         </button>
       </form>
-      <p class="admin__text" style="margin-top: 18px; font-size: 0.9rem">
-        Le compte est créé dans le dashboard Supabase
-        (Authentication → Users → Add user), pas ici.
-      </p>
     </section>
 
     <!-- Gestion -->
@@ -238,8 +244,9 @@ VITE_SUPABASE_ANON_KEY=eyJ...</pre>
             Connecté en tant que <strong>{{ session.user.email }}</strong>
           </p>
         </div>
-        <button class="btn" style="border: 1.5px solid var(--sand-300); color: var(--ink-soft)" @click="signOut">
-          Déconnexion
+        <button class="btn btn--danger" :disabled="signingOut" @click="signOut">
+          <Icon name="x" :size="16" />
+          {{ signingOut ? 'Déconnexion…' : 'Se déconnecter' }}
         </button>
       </header>
 
