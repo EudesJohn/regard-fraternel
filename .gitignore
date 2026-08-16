@@ -1,0 +1,23 @@
+# Secrets — ne JAMAIS committer
+.env
+.env.*
+!.env.example
+
+# Dépendances & builds
+node_modules/
+dist/
+dist-ssr/
+
+# Fichiers de scraping (données brutes, hors site)
+fb_dom.html
+fb_hi.json
+fb_hi2.json
+fb_media.json
+
+# Logs & fichiers temporaires
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
