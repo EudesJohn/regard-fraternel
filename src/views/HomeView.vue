@@ -1,21 +1,23 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { site, programmes, objectifs } from '../data.js'
 import { getPhotos, photoUrl } from '../lib/photos.js'
+import { useManySlots } from '../lib/useSectionSlots.js'
 import Icon from '../components/Icon.vue'
 
 const defaultSlides = [
-  { image: '/images/design/hero-main.jpg', kicker: 'ONG · République du Bénin', title: 'REGARD FRATERNEL', span: 'des vies humaines sauvées' },
-  { image: '/images/design/scolaire-hero.jpg', kicker: 'Campagne de distribution', title: 'Des kits scolaires', span: 'pour chaque enfant' },
-  { image: '/images/design/don-hero.jpg', kicker: 'Actions sur le terrain', title: 'Des infrastructures', span: 'au service des écoles' }
+  { image: '/images/photos/don/don-01.jpg', kicker: 'ONG · République du Bénin', title: 'REGARD FRATERNEL', span: 'des vies humaines sauvées' },
+  { image: '/images/photos/scolaire/scolaire-01.jpg', kicker: 'Campagne de distribution', title: 'Des kits scolaires', span: 'pour chaque enfant' },
+  { image: '/images/photos/sanitaire/sanitaire-01.jpg', kicker: 'Actions sur le terrain', title: 'Des infrastructures', span: 'au service des écoles' }
 ]
 
-const cover = {
-  sanitaire: '/images/design/cover-sanitaire.jpg',
-  scolaire: '/images/design/cover-scolaire.jpg',
-  jeux: '/images/design/cover-jeux.jpg',
-  donEcole: '/images/design/cover-don.jpg'
-}
+// Emplacements fixes : images de mise en page (remplaçables depuis l'application d'administration)
+const { url: slotUrl } = useManySlots(['hero', ...programmes.map((p) => p.photos)])
+
+// Couvertures des programmes = emplacement « cover » de chaque section
+const cover = computed(() =>
+  Object.fromEntries(programmes.map((p) => [p.photos, slotUrl(p.photos, 'cover')]))
+)
 
 const heroSlides = ref([...defaultSlides])
 const partenairePhotos = ref([])
@@ -154,8 +156,8 @@ const stats = [
             </RouterLink>
           </div>
           <div class="split__media reveal" v-reveal style="--reveal-delay: 120ms">
-            <img src="/images/design/don-split.jpg" alt="Action de REGARD FRATERNEL sur le terrain" />
-            <img class="split__media-float" src="/images/design/don-float.jpg" alt="Bénéficiaires de l'ONG" />
+            <img :src="slotUrl('hero', 'split')" alt="Action de REGARD FRATERNEL sur le terrain" />
+            <img class="split__media-float" :src="slotUrl('hero', 'split-float')" alt="Bénéficiaires de l'ONG" />
           </div>
         </div>
       </div>
@@ -163,7 +165,7 @@ const stats = [
 
     <!-- ============ VALEURS (photo fond) ============ -->
     <section class="section values values--photo">
-      <div class="values__bg" :style="{ backgroundImage: 'url(/images/design/scolaire-band.jpg)' }"></div>
+      <div class="values__bg" :style="{ backgroundImage: `url(${slotUrl('hero', 'valeurs')})` }"></div>
       <div class="values__scrim"></div>
       <div class="container">
         <p class="eyebrow reveal" v-reveal style="color: var(--terracotta-400)">Notre devise</p>
@@ -271,7 +273,7 @@ const stats = [
 
     <!-- ============ CTA / ADHÉSION (photo fond) ============ -->
     <section class="cta-band">
-      <div class="cta-band__bg" :style="{ backgroundImage: 'url(/images/design/scolaire-cta.jpg)' }"></div>
+      <div class="cta-band__bg" :style="{ backgroundImage: `url(${slotUrl('hero', 'cta')})` }"></div>
       <div class="cta-band__scrim"></div>
       <div class="container cta-band__content reveal" v-reveal>
         <h2>Rejoignez REGARD FRATERNEL</h2>

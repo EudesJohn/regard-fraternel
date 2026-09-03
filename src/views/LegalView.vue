@@ -1,7 +1,10 @@
 <script setup>
 import { site } from '../data.js'
+import { useSectionSlots } from '../lib/useSectionSlots.js'
 import PageHeader from '../components/PageHeader.vue'
 import Icon from '../components/Icon.vue'
+
+const { url: slotUrl } = useSectionSlots('textes')
 
 const documents = [
   {
@@ -27,7 +30,7 @@ const documents = [
     <PageHeader
       title="Textes juridiques"
       subtitle="Des textes fondateurs transparents et accessibles, conformes à la loi béninoise."
-      image="/images/design/don-legal.jpg"
+      :image="slotUrl('header')"
       eyebrow="Documents officiels"
     />
 

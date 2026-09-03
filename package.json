@@ -3,10 +3,16 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
+  "workspaces": [
+    "admin"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "dev:admin": "npm --prefix admin run dev",
+    "build:admin": "npm --prefix admin run build",
+    "build:all": "npm run build && npm run build:admin && node scripts/merge-admin.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.3",

@@ -1,6 +1,9 @@
 <script setup>
+import { useSectionSlots } from '../lib/useSectionSlots.js'
 import PageHeader from '../components/PageHeader.vue'
 import Icon from '../components/Icon.vue'
+
+const { url: slotUrl } = useSectionSlots('adhesion')
 
 const steps = [
   { titre: 'Adresser une demande', texte: "Envoyez une demande manuscrite d'adhésion au Président du Bureau Exécutif, adressée au siège de l'ONG." },
@@ -21,7 +24,7 @@ const fees = [
     <PageHeader
       title="Adhésion"
       subtitle="Rejoignez REGARD FRATERNEL et agissez avec nous pour les communautés vulnérables."
-      image="/images/design/scolaire-adhesion.jpg"
+      :image="slotUrl('header')"
       eyebrow="Devenir membre"
     />
 

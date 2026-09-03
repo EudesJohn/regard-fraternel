@@ -1,9 +1,11 @@
 <script setup>
 import { organes, presidium, bureauPostes, commissaires } from '../data.js'
+import { useSectionSlots } from '../lib/useSectionSlots.js'
 import PageHeader from '../components/PageHeader.vue'
 import Icon from '../components/Icon.vue'
 
 const icons = { users: 'users', briefcase: 'briefcase', compass: 'compass', scale: 'scale' }
+const { url: slotUrl } = useSectionSlots('gouvernance')
 </script>
 
 <template>
@@ -11,7 +13,7 @@ const icons = { users: 'users', briefcase: 'briefcase', compass: 'compass', scal
     <PageHeader
       title="Gouvernance"
       subtitle="Des organes structurés pour une gestion transparente et démocratique de l'organisation."
-      image="/images/design/don-gouvernance.jpg"
+      :image="slotUrl('header')"
       eyebrow="Organisation"
     />
 
@@ -43,7 +45,7 @@ const icons = { users: 'users', briefcase: 'briefcase', compass: 'compass', scal
           du 10 avril 2025.
         </p>
 
-        <div class="bureau__grid" style="grid-template-columns: repeat(3, 1fr)">
+        <div class="bureau__grid">
           <article v-for="(m, i) in presidium" :key="m.poste" class="bureau-card reveal" v-reveal :style="{ '--reveal-delay': i * 90 + 'ms' }">
             <div class="bureau-card__avatar">{{ m.initiales }}</div>
             <div>
@@ -74,7 +76,6 @@ const icons = { users: 'users', briefcase: 'briefcase', compass: 'compass', scal
               </div>
             </div>
             <ul class="membre-card__infos">
-              <li><span>Âge</span>{{ m.age }}</li>
               <li><span>Profession</span>{{ m.profession }}</li>
               <li><span>Adresse</span>{{ m.adresse }}</li>
               <li>
@@ -112,7 +113,6 @@ const icons = { users: 'users', briefcase: 'briefcase', compass: 'compass', scal
               </div>
             </div>
             <ul class="membre-card__infos">
-              <li><span>Âge</span>{{ m.age }}</li>
               <li><span>Profession</span>{{ m.profession }}</li>
               <li><span>Adresse</span>{{ m.adresse }}</li>
               <li>

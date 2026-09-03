@@ -1,0 +1,520 @@
+<script setup>
+import { ref, onMounted, computed } from 'vue'
+import { supabase, isSupabaseConfigured } from '../../../src/lib/supabase.js'
+import {
+  SECTIONS,
+  getManagedPhotos,
+  addPhoto,
+  updatePhoto,
+  replacePhoto,
+  deletePhoto,
+  movePhoto,
+  getSectionSlots,
+  replaceSlotPhoto,
+  deleteSlotPhoto,
+  saveSlotPhoto,
+  slotDefault
+} from '../../../src/lib/photos.js'
+import Icon from '../../../src/components/Icon.vue'
+
+/* ---------- État ---------- */
+const session = ref(null)
+const loading = ref(true)
+const activeSection = ref('hero')
+const photos = ref([])
+const slots = ref({})
+const busy = ref(false)
+const notice = ref('') // message d'information (succès / erreur)
+const noticeType = ref('success')
+
+/* Formulaire de connexion */
+const email = ref('')
+const password = ref('')
+const loginError = ref('')
+const loginBusy = ref(false)
+
+/* Ajout de photos libres */
+const files = ref([])
+const newCaption = ref('')
+
+/* Édition de légende (photos libres) */
+const editingId = ref(null)
+const editingCaption = ref('')
+
+/* Remplacer une photo libre */
+const replacingId = ref(null)
+
+/* Emplacements fixes */
+const slotCaptions = ref({})
+const savingSlot = ref(null)
+const savedSlot = ref(null)
+
+const sectionObj = computed(() => SECTIONS.find((s) => s.slug === activeSection.value))
+const sectionLabel = computed(() => sectionObj.value?.name || activeSection.value)
+
+const slotImg = (key) => slots.value[key]?.url || slotDefault(activeSection.value, key)
+const slotIsCustom = (key) => Boolean(slots.value[key])
+
+/* ---------- Authentification ---------- */
+onMounted(async () => {
+  if (!isSupabaseConfigured) {
+    loading.value = false
+    return
+  }
+  const { data } = await supabase.auth.getSession()
+  session.value = data.session
+  loading.value = false
+
+  supabase.auth.onAuthStateChange((_event, newSession) => {
+    session.value = newSession
+    if (newSession) {
+      loadPhotos()
+      loadSlots()
+    }
+  })
+})
+
+const signIn = async () => {
+  loginBusy.value = true
+  loginError.value = ''
+  const { error } = await supabase.auth.signInWithPassword({
+    email: email.value,
+    password: password.value
+  })
+  loginBusy.value = false
+  if (error) {
+    loginError.value = error.message === 'Invalid login credentials'
+      ? 'Identifiants incorrects.'
+      : error.message
+  }
+}
+
+const signingOut = ref(false)
+
+const signOut = async () => {
+  if (signingOut.value) return
+  signingOut.value = true
+  try {
+    await supabase.auth.signOut()
+    session.value = null
+    photos.value = []
+    slots.value = {}
+    email.value = ''
+    password.value = ''
+  } finally {
+    signingOut.value = false
+  }
+}
+
+/* ---------- Messages ---------- */
+const flash = (msg, type = 'success') => {
+  notice.value = msg
+  noticeType.value = type
+  setTimeout(() => (notice.value = ''), 4000)
+}
+
+/* Message clair si la migration du schéma (colonne key) n'a pas été appliquée */
+const withHint = (err) => {
+  const msg = err.message || ''
+  if (/key/i.test(msg) && /(does not exist|could not find|schema cache|on conflict)/i.test(msg)) {
+    return "Erreur : la migration du schéma n'est pas appliquée. Exécutez « supabase/schema.sql » dans l'éditeur SQL de Supabase (colonne key)."
+  }
+  return `Erreur : ${msg}`
+}
+
+/* ---------- Emplacements fixes ---------- */
+const initSlotCaptions = () => {
+  const obj = {}
+  for (const s of sectionObj.value?.slots || []) {
+    obj[s.key] = slots.value[s.key]?.caption || ''
+  }
+  slotCaptions.value = obj
+}
+
+const loadSlots = async () => {
+  slots.value = await getSectionSlots(activeSection.value)
+  initSlotCaptions()
+}
+
+const onSlotFile = async (slot, e) => {
+  const file = e.target.files && e.target.files[0]
+  if (!file) return
+  busy.value = true
+  try {
+    await replaceSlotPhoto(activeSection.value, slot.key, file, slots.value[slot.key])
+    flash(`« ${slot.label} » mise à jour.`)
+    await loadSlots()
+  } catch (err) {
+    flash(withHint(err), 'error')
+  } finally {
+    busy.value = false
+    e.target.value = ''
+  }
+}
+
+const saveSlotCaption = async (slot) => {
+  busy.value = true
+  savingSlot.value = slot.key
+  savedSlot.value = null
+  try {
+    const caption = (slotCaptions.value[slot.key] || '').trim()
+    const current = slots.value[slot.key]
+    if (current) {
+      await updatePhoto(current.id, { caption })
+    } else {
+      // Pas encore d'image personnalisée : la légende est enregistrée avec la photo locale par défaut
+      await saveSlotPhoto(activeSection.value, slot.key, {
+        url: slotDefault(activeSection.value, slot.key),
+        caption
+      })
+    }
+    await loadSlots()
+    savedSlot.value = slot.key
+    setTimeout(() => (savedSlot.value = null), 2500)
+  } catch (err) {
+    flash(withHint(err), 'error')
+  } finally {
+    busy.value = false
+    savingSlot.value = null
+  }
+}
+
+const resetSlot = async (slot) => {
+  if (!window.confirm(`Restaurer la photo par défaut de « ${slot.label} » ?`)) return
+  busy.value = true
+  try {
+    await deleteSlotPhoto(activeSection.value, slot.key)
+    flash('Photo par défaut restaurée.')
+    await loadSlots()
+  } catch (err) {
+    flash(`Erreur : ${err.message}`, 'error')
+  } finally {
+    busy.value = false
+  }
+}
+
+/* ---------- Gestion des photos libres ---------- */
+const loadPhotos = async () => {
+  photos.value = await getManagedPhotos(activeSection.value)
+}
+
+const switchSection = (slug) => {
+  activeSection.value = slug
+  files.value = []
+  newCaption.value = ''
+  editingId.value = null
+  replacingId.value = null
+  savedSlot.value = null
+  loadPhotos()
+  loadSlots()
+}
+
+const onFilesSelected = (e) => {
+  files.value = Array.from(e.target.files || [])
+  newCaption.value = ''
+}
+
+const addPhotos = async () => {
+  if (!files.value.length) return
+  busy.value = true
+  try {
+    for (const file of files.value) {
+      await addPhoto(activeSection.value, file, newCaption.value.trim())
+    }
+    flash(`${files.value.length} photo(s) ajoutée(s).`)
+    files.value = []
+    newCaption.value = ''
+    await loadPhotos()
+  } catch (e) {
+    flash(`Erreur : ${e.message}`, 'error')
+  } finally {
+    busy.value = false
+  }
+}
+
+const startEdit = (photo) => {
+  editingId.value = photo.id
+  editingCaption.value = photo.caption || ''
+}
+
+const saveCaption = async (photo) => {
+  busy.value = true
+  try {
+    await updatePhoto(photo.id, { caption: editingCaption.value.trim() })
+    photo.caption = editingCaption.value.trim()
+    editingId.value = null
+    flash('Légende enregistrée.')
+  } catch (e) {
+    flash(`Erreur : ${e.message}`, 'error')
+  } finally {
+    busy.value = false
+  }
+}
+
+const onReplaceSelected = async (photo, e) => {
+  const file = e.target.files && e.target.files[0]
+  if (!file) return
+  busy.value = true
+  try {
+    await replacePhoto(photo, file)
+    flash('Photo remplacée.')
+    await loadPhotos()
+  } catch (e) {
+    flash(`Erreur : ${e.message}`, 'error')
+  } finally {
+    busy.value = false
+    replacingId.value = null
+  }
+}
+
+const removePhoto = async (photo) => {
+  if (!window.confirm('Supprimer définitivement cette photo ?')) return
+  busy.value = true
+  try {
+    await deletePhoto(photo)
+    flash('Photo supprimée.')
+    await loadPhotos()
+  } catch (e) {
+    flash(`Erreur : ${e.message}`, 'error')
+  } finally {
+    busy.value = false
+  }
+}
+
+const reorder = async (photo, dir) => {
+  busy.value = true
+  try {
+    await movePhoto(photo, dir, photos.value)
+    await loadPhotos()
+  } catch (e) {
+    flash(`Erreur : ${e.message}`, 'error')
+  } finally {
+    busy.value = false
+  }
+}
+
+</script>
+
+<template>
+  <div class="admin">
+    <!-- Supabase non configuré -->
+    <section v-if="!isSupabaseConfigured" class="admin__panel">
+      <h2 class="admin__title">Administration — configuration requise</h2>
+      <p class="admin__text">
+        Pour utiliser la gestion des photos, renseignez vos clés Supabase dans un
+        fichier <code>admin/.env</code> (ou dans les variables d'environnement du
+        projet Vercel dédié à l'admin) :
+      </p>
+      <pre class="admin__code">VITE_SUPABASE_URL=https://xxxx.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJ...</pre>
+      <p class="admin__text">
+        Puis exécutez le script <code>supabase/schema.sql</code> dans l'éditeur SQL du
+        dashboard Supabase et créez le compte administrateur
+        (Authentication → Users → Add user).
+      </p>
+    </section>
+
+    <!-- Connexion -->
+    <section v-else-if="loading" class="admin__panel">
+      <p class="admin__loading">Chargement…</p>
+    </section>
+
+    <section v-else-if="!session" class="admin__panel admin__panel--narrow admin__login">
+      <div class="admin__login-icon">
+        <Icon name="shield" :size="30" />
+      </div>
+      <h2 class="admin__title admin__login-title">Connexion administrateur</h2>
+      <p class="admin__login-sub">Espace sécurisé — réservé à l'administration</p>
+      <form class="admin__form" @submit.prevent="signIn">
+        <div class="form-field">
+          <label for="admin-email">E-mail</label>
+          <input id="admin-email" v-model="email" type="email" required placeholder="admin@regardfraternel.org" />
+        </div>
+        <div class="form-field">
+          <label for="admin-password">Mot de passe</label>
+          <input id="admin-password" v-model="password" type="password" required placeholder="••••••••" />
+        </div>
+        <p v-if="loginError" class="admin__error">{{ loginError }}</p>
+        <button type="submit" class="btn btn--primary" style="width: 100%; justify-content: center" :disabled="loginBusy">
+          {{ loginBusy ? 'Connexion…' : 'Se connecter' }}
+          <Icon name="arrowRight" :size="18" />
+        </button>
+      </form>
+    </section>
+
+    <!-- Gestion -->
+    <section v-else>
+      <header class="admin__head">
+        <div>
+          <h2 class="admin__title">Gestion des photos</h2>
+          <p class="admin__text">
+            Connecté en tant que <strong>{{ session.user.email }}</strong>
+          </p>
+        </div>
+        <button class="btn btn--danger" :disabled="signingOut" @click="signOut">
+          <Icon name="x" :size="16" />
+          {{ signingOut ? 'Déconnexion…' : 'Se déconnecter' }}
+        </button>
+      </header>
+
+      <p v-if="notice" class="admin__notice" :class="`admin__notice--${noticeType}`">{{ notice }}</p>
+
+      <!-- Sélecteur de section -->
+      <div class="admin__tabs" role="tablist" aria-label="Sections">
+        <button
+          v-for="s in SECTIONS"
+          :key="s.slug"
+          class="admin__tab"
+          :class="{ 'is-active': activeSection === s.slug }"
+          role="tab"
+          :aria-selected="activeSection === s.slug"
+          @click="switchSection(s.slug)"
+        >
+          {{ s.name }}
+        </button>
+      </div>
+
+      <!-- Emplacements fixes -->
+      <div v-if="sectionObj?.slots?.length" class="admin__panel">
+        <h3 class="admin__subtitle">Photos de mise en page — {{ sectionLabel }}</h3>
+        <p class="admin__text">
+          Remplacez ici les images affichées sur la page. Tant que vous ne personnalisez
+          pas un emplacement, la photo locale par défaut reste affichée (badge
+          « Photo par défaut »).
+        </p>
+
+        <div class="admin__slots">
+          <article v-for="slot in sectionObj.slots" :key="slot.key" class="admin__slot">
+            <div class="admin__slot-imgwrap">
+              <img :src="slotImg(slot.key)" :alt="slot.label" />
+              <span class="admin__slot-badge" :class="{ 'is-custom': slotIsCustom(slot.key) }">
+                {{ slotIsCustom(slot.key) ? 'Personnalisée' : 'Photo par défaut' }}
+              </span>
+            </div>
+            <div class="admin__slot-body">
+              <h4>{{ slot.label }}</h4>
+
+              <div class="admin__slot-row">
+                <label class="admin__icon-btn" :title="`Remplacer « ${slot.label} »`" style="width: 38px; height: 38px">
+                  <Icon name="download" :size="17" />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    class="admin__hidden-input"
+                    :disabled="busy"
+                    @change="onSlotFile(slot, $event)"
+                  />
+                </label>
+                <button
+                  v-if="slotIsCustom(slot.key)"
+                  class="admin__icon-btn admin__icon-btn--danger"
+                  style="width: 38px; height: 38px"
+                  title="Restaurer la photo par défaut"
+                  :disabled="busy"
+                  @click="resetSlot(slot)"
+                >
+                  <Icon name="rotate" :size="17" />
+                </button>
+                <span class="admin__slot-hint">Remplacer</span>
+              </div>
+
+              <div class="admin__slot-caption">
+                <input
+                  v-model="slotCaptions[slot.key]"
+                  class="admin__caption-input"
+                  type="text"
+                  :placeholder="`Légende (optionnelle) — ${slot.label}`"
+                  @keyup.enter="saveSlotCaption(slot)"
+                />
+                <button
+                  class="btn btn--primary btn--sm"
+                  :disabled="busy || savingSlot === slot.key"
+                  @click="saveSlotCaption(slot)"
+                >
+                  {{ savingSlot === slot.key ? '…' : 'Enregistrer' }}
+                </button>
+              </div>
+              <p v-if="savedSlot === slot.key" class="admin__saved">Enregistré ✓</p>
+            </div>
+          </article>
+        </div>
+      </div>
+
+      <!-- Photos libres -->
+      <div v-if="sectionObj?.freePhotos" class="admin__panel">
+        <h3 class="admin__subtitle">Galerie — {{ sectionLabel }}</h3>
+        <div class="admin__add">
+          <label class="admin__file">
+            <Icon name="zoomIn" :size="18" />
+            Choisir des fichiers
+            <input type="file" accept="image/*" multiple @change="onFilesSelected" />
+          </label>
+          <span v-if="files.length" class="admin__file-count">{{ files.length }} fichier(s) sélectionné(s)</span>
+          <input
+            v-model="newCaption"
+            class="admin__caption-input"
+            type="text"
+            placeholder="Légende (optionnelle) appliquée à toutes les photos"
+          />
+          <button class="btn btn--primary" :disabled="busy || !files.length" @click="addPhotos">
+            <Icon name="download" :size="16" />
+            Ajouter
+          </button>
+        </div>
+
+        <div v-if="photos.length" class="admin__grid">
+          <article v-for="(photo, i) in photos" :key="photo.id" class="admin__photo">
+            <img :src="photo.url" :alt="photo.caption || 'Photo'" />
+            <div class="admin__photo-tools">
+              <div class="admin__photo-actions">
+                <button class="admin__icon-btn" title="Monter" :disabled="busy || i === 0" @click="reorder(photo, -1)">
+                  <Icon name="chevronLeft" :size="16" style="transform: rotate(90deg)" />
+                </button>
+                <button class="admin__icon-btn" title="Descendre" :disabled="busy || i === photos.length - 1" @click="reorder(photo, 1)">
+                  <Icon name="chevronRight" :size="16" style="transform: rotate(90deg)" />
+                </button>
+              </div>
+              <div class="admin__photo-actions">
+                <label class="admin__icon-btn" title="Remplacer la photo">
+                  <Icon name="download" :size="16" />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    class="admin__hidden-input"
+                    :disabled="replacingId === photo.id"
+                    @change="onReplaceSelected(photo, $event)"
+                  />
+                </label>
+                <button class="admin__icon-btn admin__icon-btn--danger" title="Supprimer" :disabled="busy" @click="removePhoto(photo)">
+                  <Icon name="x" :size="16" />
+                </button>
+              </div>
+            </div>
+
+            <div class="admin__photo-caption">
+              <template v-if="editingId === photo.id">
+                <input
+                  v-model="editingCaption"
+                  class="admin__caption-input"
+                  type="text"
+                  placeholder="Légende"
+                  @keyup.enter="saveCaption(photo)"
+                  @keyup.esc="editingId = null"
+                />
+                <button class="btn btn--primary btn--sm" :disabled="busy" @click="saveCaption(photo)">OK</button>
+              </template>
+              <template v-else>
+                <span class="admin__caption-text" :class="{ 'is-empty': !photo.caption }" @click="startEdit(photo)">
+                  {{ photo.caption || 'Ajouter une légende…' }}
+                </span>
+                <button class="admin__edit-link" @click="startEdit(photo)">Modifier</button>
+              </template>
+            </div>
+          </article>
+        </div>
+
+        <p v-else class="admin__empty">Aucune photo dans cette galerie pour l'instant.</p>
+      </div>
+    </section>
+  </div>
+</template>

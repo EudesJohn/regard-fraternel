@@ -1,22 +1,7 @@
 import { supabase, isSupabaseConfigured } from './supabase.js'
+import { defaultPhotos } from './defaultPhotos.js'
 
-/**
- * Sections du site dont les photos sont gérables.
- * `cle` = valeur stockée dans la colonne `section` de la table `photos`.
- */
-export const SECTIONS = [
-  { cle: 'sanitaire', label: 'Appui sanitaire' },
-  { cle: 'scolaire', label: 'Appui scolaire' },
-  { cle: 'jeux', label: 'Espaces de jeux' },
-  { cle: 'donEcole', label: 'Dons aux écoles' },
-  { cle: 'partenaires', label: 'Partenaires' },
-  { cle: 'hero', label: "Accueil (diaporama)" }
-]
-
-export const sectionLabel = (cle) => {
-  const s = SECTIONS.find((s) => s.cle === cle)
-  return s ? s.label : cle
-}
+export { SECTIONS, sectionLabel, slotDefault } from './sections.js'
 
 const BUCKET = 'photos'
 
@@ -32,22 +17,25 @@ export function photoUrl(url, width = 500) {
 }
 
 /**
- * Photos d'une section pour l'affichage public (depuis Supabase).
- * Retourne [] si Supabase n'est pas configuré ou en erreur.
+ * Photos d'une section pour l'affichage public.
+ * Repli automatique : si Supabase n'est pas configuré, est en erreur ou si la
+ * section est encore vide en base, on affiche les photos locales (defaultPhotos).
  */
 export async function getPhotos(section) {
-  if (!isSupabaseConfigured) return []
+  const fallback = defaultPhotos[section] || []
+  if (!isSupabaseConfigured) return fallback
   try {
     const { data, error } = await supabase
       .from('photos')
       .select('id, url, caption, position')
       .eq('section', section)
+      .is('key', null) // les emplacements fixes sont gérés séparément
       .order('position', { ascending: true })
     if (error) throw error
-    return data || []
+    return data && data.length ? data : fallback
   } catch (e) {
-    console.warn(`[photos] Supabase indisponible pour « ${section} ».`, e)
-    return []
+    console.warn(`[photos] Supabase indisponible pour « ${section} », photos locales utilisées.`, e)
+    return fallback
   }
 }
 
@@ -62,6 +50,7 @@ export async function getManagedPhotos(section) {
       .from('photos')
       .select('id, url, caption, position')
       .eq('section', section)
+      .is('key', null) // les emplacements fixes sont gérés séparément
       .order('position', { ascending: true })
     if (error) throw error
     return data || []
@@ -85,6 +74,7 @@ export async function addPhoto(section, file, caption = '') {
     .from('photos')
     .select('id', { count: 'exact', head: true })
     .eq('section', section)
+    .is('key', null)
 
   const { data, error } = await supabase
     .from('photos')
@@ -105,6 +95,77 @@ export async function updatePhoto(id, patch) {
     .single()
   if (error) throw error
   return data
+}
+
+/* ============================================================
+ * Emplacements fixes (slots) : images de mise en page modifiables
+ * depuis l'admin. Une ligne en base = emplacement personnalisé ;
+ * sinon la photo locale par défaut est utilisée.
+ * ============================================================ */
+
+/** Retourne { key: { id, url, caption } } pour les emplacements fixes d'une section. */
+export async function getSectionSlots(section) {
+  const out = {}
+  if (!isSupabaseConfigured) return out
+  try {
+    const { data, error } = await supabase
+      .from('photos')
+      .select('id, url, caption, key')
+      .eq('section', section)
+    if (error) throw error
+    for (const row of data || []) {
+      if (row.key) out[row.key] = { id: row.id, url: row.url, caption: row.caption || '' }
+    }
+  } catch (e) {
+    console.warn(`[photos] Emplacements indisponibles pour « ${section} ».`, e)
+  }
+  return out
+}
+
+/** Insère ou met à jour une photo d'emplacement fixe, identifiée par (section, key). */
+export async function saveSlotPhoto(section, key, { url, caption = '' }) {
+  const { data, error } = await supabase
+    .from('photos')
+    .upsert({ section, key, url, caption }, { onConflict: 'section,key' })
+    .select('id, url, caption')
+    .single()
+  if (error) throw error
+  return data
+}
+
+/** Remplace l'image d'un emplacement fixe : upload + upsert + suppression de l'ancien fichier. */
+export async function replaceSlotPhoto(section, key, file, current) {
+  const path = `${section}/${key}-${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_')}`
+  const { error: uploadError } = await supabase.storage
+    .from(BUCKET)
+    .upload(path, file, { cacheControl: '31536000', upsert: false })
+  if (uploadError) throw uploadError
+
+  const { data: { publicUrl } } = supabase.storage.from(BUCKET).getPublicUrl(path)
+  const saved = await saveSlotPhoto(section, key, { url: publicUrl, caption: current?.caption || '' })
+
+  const oldPath = current ? pathFromUrl(current.url) : null
+  if (oldPath && oldPath !== path) {
+    await supabase.storage.from(BUCKET).remove([oldPath])
+  }
+  return saved
+}
+
+/** Restaure l'emplacement fixe par défaut : supprime la ligne (et le fichier du bucket si présent). */
+export async function deleteSlotPhoto(section, key) {
+  const { data } = await supabase
+    .from('photos')
+    .select('id, url')
+    .eq('section', section)
+    .eq('key', key)
+    .maybeSingle()
+  if (!data) return
+  const oldPath = pathFromUrl(data.url)
+  if (oldPath) {
+    await supabase.storage.from(BUCKET).remove([oldPath])
+  }
+  const { error } = await supabase.from('photos').delete().eq('id', data.id)
+  if (error) throw error
 }
 
 /** Extrait le chemin de stockage depuis l'URL publique du bucket. */

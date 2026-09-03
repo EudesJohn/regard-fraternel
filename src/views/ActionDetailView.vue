@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { programmes } from '../data.js'
-import { getPhotos, photoUrl } from '../lib/photos.js'
+import { getPhotos, getSectionSlots, photoUrl, slotDefault } from '../lib/photos.js'
 import PageHeader from '../components/PageHeader.vue'
 import PhotoLightbox from '../components/PhotoLightbox.vue'
 import Icon from '../components/Icon.vue'
@@ -11,12 +11,8 @@ const route = useRoute()
 const programme = computed(() => programmes.find((p) => p.id === route.params.id) || programmes[0])
 const photos = ref([])
 
-const covers = {
-  sanitaire: '/images/design/cover-sanitaire.jpg',
-  scolaire: '/images/design/cover-scolaire.jpg',
-  jeux: '/images/design/cover-jeux.jpg',
-  donEcole: '/images/design/cover-don.jpg'
-}
+// Couverture de la page = emplacement fixe « cover » de la section du programme
+const cover = ref('')
 
 const lightboxOpen = ref(false)
 const lightboxIndex = ref(0)
@@ -43,6 +39,14 @@ const loadGallery = async (cle) => {
     return
   }
 
+  // Photos locales (repli) : affichage immédiat en lazy-load — le préchargement
+  // est réservé aux miniatures Supabase (photoUrl les redimensionne).
+  const isLocal = photos.value.every((p) => !p.url || p.url.startsWith('/'))
+  if (isLocal) {
+    galleryLoading.value = false
+    return
+  }
+
   let done = 0
   await Promise.all(
     photos.value.map(
@@ -62,7 +66,18 @@ const loadGallery = async (cle) => {
   galleryLoading.value = false
 }
 
-watch(() => programme.value?.photos, loadGallery, { immediate: true })
+watch(
+  () => programme.value?.photos,
+  async (cle) => {
+    if (!cle) return
+    // Couverture : emplacement fixe (photo locale par défaut tant que rien n'est personnalisé)
+    cover.value = slotDefault(cle, 'cover')
+    const slots = await getSectionSlots(cle)
+    cover.value = slots.cover?.url || cover.value
+    await loadGallery(cle)
+  },
+  { immediate: true }
+)
 </script>
 
 <template>
@@ -70,7 +85,7 @@ watch(() => programme.value?.photos, loadGallery, { immediate: true })
     <PageHeader
       :title="programme.titre"
       :subtitle="programme.sousTitre"
-      :image="covers[programme.photos]"
+      :image="cover"
       :eyebrow="`Programme ${programme.numero}`"
     />
 

@@ -47,7 +47,7 @@ const icons = {
           Procès-Verbal du 10 avril 2025.
         </p>
 
-        <div class="bureau__grid" style="grid-template-columns: repeat(3, 1fr)">
+        <div class="bureau__grid">
           <article
             v-for="(m, i) in presidium"
             :key="m.poste"

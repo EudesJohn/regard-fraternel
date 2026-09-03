@@ -5,7 +5,7 @@ import Icon from './Icon.vue'
 
 <template>
   <section id="accueil" class="hero">
-    <div class="hero__bg" :style="{ backgroundImage: 'url(/images/design/hero-main.jpg)' }"></div>
+    <div class="hero__bg" :style="{ backgroundImage: 'url(/images/photos/don/don-01.jpg)' }"></div>
     <div class="hero__overlay"></div>
 
     <div class="container">

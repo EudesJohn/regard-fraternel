@@ -1,9 +1,11 @@
 <script setup>
 import { site, objectifs } from '../data.js'
+import { useSectionSlots } from '../lib/useSectionSlots.js'
 import PageHeader from '../components/PageHeader.vue'
 import Icon from '../components/Icon.vue'
 
 const icons = { shield: 'shield', handshake: 'handshake', sprout: 'sprout', graduation: 'graduation', tractor: 'wheat' }
+const { url: slotUrl } = useSectionSlots('apropos')
 </script>
 
 <template>
@@ -11,7 +13,7 @@ const icons = { shield: 'shield', handshake: 'handshake', sprout: 'sprout', grad
     <PageHeader
       title="À propos de l'ONG"
       subtitle="Organisation Non Gouvernementale béninoise à but non lucratif, apolitique et laïque."
-      image="/images/design/scolaire-hero.jpg"
+      :image="slotUrl('header')"
       eyebrow="Qui sommes-nous"
     />
 
@@ -20,8 +22,8 @@ const icons = { shield: 'shield', handshake: 'handshake', sprout: 'sprout', grad
         <div class="about__grid">
           <div class="about__media reveal" v-reveal>
             <div class="about__badge">Depuis {{ site.fondation }}</div>
-            <img class="about__img-main" src="/images/design/don-float.jpg" alt="Action de REGARD FRATERNEL" />
-            <img class="about__img-float" src="/images/design/scolaire-about.jpg" alt="Enfants bénéficiaires" />
+            <img class="about__img-main" :src="slotUrl('media-1')" alt="Action de REGARD FRATERNEL" />
+            <img class="about__img-float" :src="slotUrl('media-2')" alt="Enfants bénéficiaires" />
           </div>
 
           <div class="about__text reveal" v-reveal style="--reveal-delay: 120ms">

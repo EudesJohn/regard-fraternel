@@ -10,12 +10,12 @@ import { site } from '../data.js'
           <div class="about__badge">Depuis {{ site.fondation }}</div>
           <img
             class="about__img-main"
-            src="/images/design/don-float.jpg"
+            src="/images/photos/don/don-05.jpg"
             alt="Action de REGARD FRATERNEL"
           />
           <img
             class="about__img-float"
-            src="/images/design/scolaire-about.jpg"
+            src="/images/photos/scolaire/scolaire-03.jpg"
             alt="Enfants bénéficiaires"
           />
         </div>

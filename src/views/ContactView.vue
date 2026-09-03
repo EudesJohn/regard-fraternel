@@ -1,8 +1,13 @@
 <script setup>
 import { reactive, ref } from 'vue'
 import { site, partenaires } from '../data.js'
+import { useSectionSlots } from '../lib/useSectionSlots.js'
 import PageHeader from '../components/PageHeader.vue'
 import Icon from '../components/Icon.vue'
+
+// Bannière de la page + logo partenaire (remplaçables depuis l'application d'administration)
+const { url: slotUrl } = useSectionSlots('contact')
+const { url: partnerLogo } = useSectionSlots('partenaires')
 
 const form = reactive({ nom: '', email: '', telephone: '', message: '' })
 const status = ref('') // '' | 'sending' | 'sent' | 'error'
@@ -60,7 +65,7 @@ const contactItems = [
     <PageHeader
       title="Contact"
       subtitle="Une question, un projet, une idée de partenariat ? Écrivez-nous — notre équipe vous répondra avec plaisir."
-      image="/images/design/don-contact.jpg"
+      :image="slotUrl('header')"
       eyebrow="Parlons de solidarité"
     />
 
@@ -135,6 +140,16 @@ const contactItems = [
         <p class="eyebrow reveal" v-reveal>Nos partenaires</p>
         <h2 class="section-title reveal" v-reveal>Ils nous <em>soutiennent</em></h2>
         <div class="partenaires__grid">
+          <article class="partenaire-card partenaire-card--logo reveal" v-reveal>
+            <img class="partenaire-card__logo-img" :src="partnerLogo('logo')" alt="Logo Mama Yovo" />
+            <div>
+              <h3>Mama Yovo</h3>
+              <p>
+                Partenaire engagé aux côtés de REGARD FRATERNEL pour soutenir les
+                actions éducatives et solidaires de l'ONG au Bénin.
+              </p>
+            </div>
+          </article>
           <article v-for="(p, i) in partenaires" :key="p.nom" class="partenaire-card reveal" v-reveal :style="{ '--reveal-delay': i * 100 + 'ms' }">
             <div class="partenaire-card__icon"><Icon :name="p.icon" :size="26" /></div>
             <h3>{{ p.nom }}</h3>

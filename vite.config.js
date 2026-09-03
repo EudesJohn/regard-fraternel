@@ -22,11 +22,16 @@ export default defineConfig({
         ]
       },
       workbox: {
-        // ⚠️ PAS de navigateFallback et PAS de HTML dans le precache : le site
-        // utilise le hash routing (#/...), donc la navigation doit TOUJOURS
-        // charger index.html depuis le réseau (jamais une version obsolète en
-        // cache après un redéploiement — cause des boutons de navigation morts).
-        globPatterns: ['**/*.{js,css,ico,png,jpg,svg,woff2}'],
+        // ⚠️ PAS de navigateFallback et PAS de HTML dans le precache : la
+        // navigation (history mode, URLs propres) doit TOUJOURS charger
+        // index.html depuis le réseau (jamais une version obsolète en cache
+        // après un redéploiement — cause des boutons de navigation morts).
+        // Les photos du site (~26 Mo) ne sont PAS précachées : elles passent par
+        // le runtime caching ci-dessous (cache à la première visite).
+        globPatterns: ['**/*.{js,css,ico,woff2}', '**/logo.png', '**/logo-light.png'],
+        // L'admin (dist/admin) n'est jamais précachée dans le service worker
+        // public : ses fichiers sont protégés par la porte /admin (middleware).
+        globIgnores: ['**/admin/**'],
         // Désactive le fallback de navigation du precache (CacheFirst sur
         // index.html) : le plugin en met un par défaut.
         navigateFallback: null,
@@ -39,6 +44,19 @@ export default defineConfig({
             options: {
               cacheName: 'pages',
               networkTimeoutSeconds: 4
+            }
+          },
+          {
+            // Photos locales du site (public/images) — cache à la première visite
+            urlPattern: /\/images\/.*\.(png|jpe?g|webp)$/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'site-images',
+              expiration: {
+                maxEntries: 300,
+                maxAgeSeconds: 60 * 60 * 24 * 30 // 30 jours
+              },
+              cacheableResponse: { statuses: [0, 200] }
             }
           },
           {
@@ -70,7 +88,10 @@ export default defineConfig({
       }
     })
   ],
-  base: './',
+  // Base absolue : le site est servi à la racine du domaine, et le routeur
+  // utilise le history mode (URLs propres, sans #). Les assets (/assets/...)
+  // sont servis tels quels grâce aux rewrites de vercel.json.
+  base: '/',
   server: {
     open: false,
     port: 5173

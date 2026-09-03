@@ -1,14 +1,16 @@
 <script setup>
+import { computed } from 'vue'
 import { programmes } from '../data.js'
+import { useManySlots } from '../lib/useSectionSlots.js'
 import PageHeader from '../components/PageHeader.vue'
 import Icon from '../components/Icon.vue'
 
-const cover = {
-  sanitaire: '/images/design/cover-sanitaire.jpg',
-  scolaire: '/images/design/cover-scolaire.jpg',
-  jeux: '/images/design/cover-jeux.jpg',
-  donEcole: '/images/design/cover-don.jpg'
-}
+// Emplacements fixes : bannière de la page + couvertures des programmes
+const { url: slotUrl } = useManySlots(['actions', ...programmes.map((p) => p.photos)])
+
+const cover = computed(() =>
+  Object.fromEntries(programmes.map((p) => [p.photos, slotUrl(p.photos, 'cover')]))
+)
 </script>
 
 <template>
@@ -16,7 +18,7 @@ const cover = {
     <PageHeader
       title="Nos actions"
       subtitle="Santé, éducation, loisirs et dons : des programmes concrets menés auprès des communautés au Bénin."
-      image="/images/design/scolaire-band.jpg"
+      :image="slotUrl('actions', 'header')"
       eyebrow="Sur le terrain"
     />
 
