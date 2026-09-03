@@ -1,4 +1,4 @@
-import { createRouter, createWebHashHistory } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
 
 const routes = [
   { path: '/', name: 'accueil', component: () => import('./views/HomeView.vue'), meta: { title: 'Accueil' } },
@@ -9,14 +9,16 @@ const routes = [
   { path: '/textes', name: 'textes', component: () => import('./views/LegalView.vue'), meta: { title: 'Textes juridiques' } },
   { path: '/adhesion', name: 'adhesion', component: () => import('./views/MembershipView.vue'), meta: { title: 'Adhésion' } },
   { path: '/contact', name: 'contact', component: () => import('./views/ContactView.vue'), meta: { title: 'Contact' } },
-  { path: '/admin', name: 'admin', component: () => import('./views/AdminView.vue'), meta: { title: 'Administration' } },
+  // NB : l'administration vit dans une app séparée (dossier admin/)
   { path: '/:pathMatch(.*)*', redirect: '/' }
 ]
 
+
 const router = createRouter({
-  // Hash history : fonctionne partout (file://, serveur statique simple,
-  // hébergement sans configuration SPA fallback) — pas de pages blanches.
-  history: createWebHashHistory(),
+  // History mode : URLs propres (sans #) — ex. /gouvernance au lieu de /#/gouvernance.
+  // Nécessite le fallback SPA côté serveur (voir rewrites dans vercel.json)
+  // pour servir index.html sur chaque route.
+  history: createWebHistory(),
   routes,
   scrollBehavior(to, from, savedPosition) {
     return savedPosition || { top: 0 }
