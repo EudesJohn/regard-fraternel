@@ -8,6 +8,7 @@ const routes = [
   { path: '/gouvernance', name: 'gouvernance', component: () => import('./views/GovernanceView.vue'), meta: { title: 'Gouvernance' } },
   { path: '/textes', name: 'textes', component: () => import('./views/LegalView.vue'), meta: { title: 'Textes juridiques' } },
   { path: '/adhesion', name: 'adhesion', component: () => import('./views/MembershipView.vue'), meta: { title: 'Adhésion' } },
+  { path: '/partenaires', name: 'partenaires', component: () => import('./views/PartenairesView.vue'), meta: { title: 'Partenaires' } },
   { path: '/contact', name: 'contact', component: () => import('./views/ContactView.vue'), meta: { title: 'Contact' } },
   // NB : l'administration vit dans une app séparée (dossier admin/)
   { path: '/:pathMatch(.*)*', redirect: '/' }

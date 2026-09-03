@@ -14,6 +14,7 @@ const links = [
   { to: '/gouvernance', label: 'Gouvernance', match: '/gouvernance' },
   { to: '/textes', label: 'Textes', match: '/textes' },
   { to: '/adhesion', label: 'Adhésion', match: '/adhesion' },
+  { to: '/partenaires', label: 'Partenaires', match: '/partenaires' },
   { to: '/contact', label: 'Contact', match: '/contact' }
 ]
 
