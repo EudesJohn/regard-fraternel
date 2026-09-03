@@ -9,7 +9,6 @@ const links = [
   { label: 'Gouvernance', to: '/gouvernance' },
   { label: 'Textes juridiques', to: '/textes' },
   { label: 'Adhésion', to: '/adhesion' },
-  { label: 'Partenaires', to: '/partenaires' },
   { label: 'Contact', to: '/contact' }
 ]
 
