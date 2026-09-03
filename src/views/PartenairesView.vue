@@ -62,12 +62,26 @@ onMounted(async () => {
             </div>
           </article>
 
+          <!-- Photos ajoutées par l'admin (section partenaires) -->
+          <article
+            v-for="(photo, i) in photos"
+            :key="photo.id || photo.url"
+            class="partenaire-card partenaire-card--logo reveal"
+            v-reveal
+            :style="{ '--reveal-delay': (partnerLogos.length + i) * 100 + 'ms' }"
+          >
+            <img class="partenaire-card__logo-img" :src="photoUrl(photo.url, 480)" :alt="photo.caption || 'Partenaire'" loading="lazy" />
+            <div v-if="photo.caption">
+              <h3>{{ photo.caption }}</h3>
+            </div>
+          </article>
+
           <article
             v-for="(p, i) in partenaires"
             :key="p.nom"
             class="partenaire-card reveal"
             v-reveal
-            :style="{ '--reveal-delay': (i + 1) * 100 + 'ms' }"
+            :style="{ '--reveal-delay': (partnerLogos.length + photos.length + i) * 100 + 'ms' }"
           >
             <div class="partenaire-card__icon"><Icon :name="p.icon" :size="26" /></div>
             <h3>{{ p.nom }}</h3>
