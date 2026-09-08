@@ -1,6 +1,6 @@
 // ============================================================
 // REGARD FRATERNEL — Porte d'accès de l'administration
-// Middleware Vercel (Edge runtime).
+// Middleware Vercel (runtime Node.js).
 //
 // - Protège /admin et TOUS ses fichiers (HTML, JS, CSS compris) :
 //   sans le cookie d'accès, le serveur refuse de servir quoi que ce
@@ -428,5 +428,6 @@ export default async function middleware(request) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*']
+  matcher: ['/admin/:path*'],
+  runtime: 'nodejs'
 }
