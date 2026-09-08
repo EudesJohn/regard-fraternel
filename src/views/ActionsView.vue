@@ -1,11 +1,11 @@
 <script setup>
 import { computed } from 'vue'
-import { programmes } from '../data.js'
+import { programmes, piliersIntro, piliersTransversal } from '../data.js'
 import { useManySlots } from '../lib/useSectionSlots.js'
 import PageHeader from '../components/PageHeader.vue'
 import Icon from '../components/Icon.vue'
 
-// Emplacements fixes : bannière de la page + couvertures des programmes
+// Emplacements fixes : bannière de la page + couvertures des piliers
 const { url: slotUrl } = useManySlots(['actions', ...programmes.map((p) => p.photos)])
 
 const cover = computed(() =>
@@ -17,18 +17,17 @@ const cover = computed(() =>
   <div>
     <PageHeader
       title="Nos actions"
-      subtitle="Santé, éducation, loisirs et dons : des programmes concrets menés auprès des communautés au Bénin."
+      subtitle="Éducation, égalité des genres, santé et environnement : quatre piliers d'intervention au service des communautés au Bénin."
       :image="slotUrl('actions', 'header')"
       eyebrow="Sur le terrain"
     />
 
     <section class="section">
       <div class="container">
-        <p class="eyebrow reveal" v-reveal>Nos programmes</p>
-        <h2 class="section-title reveal" v-reveal>Quatre piliers <em>d'action</em></h2>
+        <p class="eyebrow reveal" v-reveal>Nos piliers d'intervention</p>
+        <h2 class="section-title reveal" v-reveal>Nos quatre piliers <em>d'intervention</em></h2>
         <p class="section-intro reveal" v-reveal>
-          Chaque programme répond à un besoin concret des communautés, en lien avec nos
-          objectifs statutaires. Cliquez sur un programme pour découvrir ses photos.
+          {{ piliersIntro }}
         </p>
 
         <div class="program-cards program-cards--alt">
@@ -42,7 +41,7 @@ const cover = computed(() =>
             <img :src="cover[p.photos]" :alt="p.titre" />
             <div class="program-card__scrim"></div>
             <div class="program-card__body">
-              <span class="program-card__num">{{ p.numero }}</span>
+              <span class="program-card__num">Pilier {{ p.numero }}</span>
               <h3>{{ p.titre }}</h3>
               <p>{{ p.sousTitre }}</p>
               <p class="program-card__desc">{{ p.texte }}</p>
@@ -52,6 +51,16 @@ const cover = computed(() =>
               </span>
             </div>
           </RouterLink>
+        </div>
+
+        <div class="transversal reveal" v-reveal>
+          <div class="transversal__icon">
+            <Icon name="shield" :size="30" />
+          </div>
+          <div class="transversal__body">
+            <h3>{{ piliersTransversal.titre }}</h3>
+            <p>{{ piliersTransversal.texte }}</p>
+          </div>
         </div>
       </div>
     </section>

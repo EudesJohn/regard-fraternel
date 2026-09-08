@@ -494,6 +494,10 @@ select:focus-visible,
   color: var(--ink-soft);
   font-weight: 600;
   font-size: 0.89rem;
+  max-width: 100%;
+  white-space: normal;
+  line-height: 1.3;
+  text-align: left;
   transition: all 0.25s ease;
 }
 
@@ -508,6 +512,37 @@ select:focus-visible,
   border-color: var(--forest-700);
   color: var(--white);
   box-shadow: 0 8px 20px rgba(22, 73, 58, 0.28);
+}
+
+/* Chemin de la page concernée (sous les onglets) */
+
+.admin__page-path {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: -12px 0 24px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--forest-50);
+  border: 1px solid var(--forest-100);
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+.admin__page-path a {
+  color: var(--forest-700);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.admin__page-path a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.admin__page-path-arrow {
+  color: var(--terracotta-500);
+  font-weight: 700;
 }
 
 /* ---------- Ajout de photos ---------- */
@@ -608,6 +643,35 @@ select:focus-visible,
   align-items: center;
   padding: 10px 12px;
   border-bottom: 1px solid var(--sand-200);
+}
+
+/* ---------- Réordonnancement par glisser-déposer ---------- */
+
+.admin__photo[draggable='true'] {
+  cursor: grab;
+}
+
+.admin__photo.is-dragging {
+  opacity: 0.45;
+  transform: scale(0.98);
+}
+
+.admin__photo.is-drop-target {
+  outline: 2.5px dashed var(--forest-500);
+  outline-offset: 2px;
+}
+
+.admin__drag-handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  color: var(--ink-soft);
+  cursor: grab;
+}
+
+.admin__drag-handle:active {
+  cursor: grabbing;
 }
 
 .admin__photo-actions {
@@ -752,6 +816,51 @@ select:focus-visible,
 
 .admin__slot-badge.is-custom {
   background: rgba(176, 90, 56, 0.92);
+}
+
+/* Voile de dépôt (glisser-déposer d'un fichier sur une vignette) */
+
+.admin__slot.is-drop {
+  border-color: var(--forest-500);
+  box-shadow: 0 0 0 3px rgba(43, 122, 96, 0.25), var(--shadow-md);
+}
+
+.admin__slot-drop {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: rgba(11, 42, 33, 0.72);
+  color: var(--white);
+  font-weight: 600;
+  font-size: 0.86rem;
+  text-align: center;
+  padding: 12px;
+  backdrop-filter: blur(2px);
+  pointer-events: none;
+}
+
+/* ---------- Zone d'ajout : dépôt de fichiers ---------- */
+
+.admin__add.is-drop {
+  border-color: var(--forest-500);
+  background: var(--forest-50);
+  box-shadow: 0 0 0 3px rgba(43, 122, 96, 0.18);
+}
+
+.admin__drop-hint {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  font-style: italic;
+}
+
+.admin__add.is-drop .admin__drop-hint {
+  color: var(--forest-700);
+  font-weight: 600;
+  font-style: normal;
 }
 
 .admin__slot-body {

@@ -13,6 +13,7 @@ export const SECTIONS = [
   {
     slug: 'hero',
     name: 'Accueil',
+    path: '/',
     freePhotos: true, // diaporama d'accueil (photos libres ordonnées)
     slots: [
       { key: 'split', label: '« Qui sommes-nous » — grande image', default: '/images/photos/don/don-05.jpg' },
@@ -24,6 +25,7 @@ export const SECTIONS = [
   {
     slug: 'actions',
     name: 'Nos actions',
+    path: '/actions',
     slots: [
       { key: 'header', label: 'Bannière de page', default: '/images/photos/scolaire/scolaire-02.jpg' }
     ]
@@ -31,6 +33,7 @@ export const SECTIONS = [
   {
     slug: 'apropos',
     name: 'À propos',
+    path: '/apropos',
     slots: [
       { key: 'header', label: 'Bannière de page', default: '/images/photos/scolaire/scolaire-02.jpg' },
       { key: 'media-1', label: 'Grande photo « Notre histoire »', default: '/images/photos/don/don-05.jpg' },
@@ -40,6 +43,7 @@ export const SECTIONS = [
   {
     slug: 'gouvernance',
     name: 'Gouvernance',
+    path: '/gouvernance',
     slots: [
       { key: 'header', label: 'Bannière de page', default: '/images/photos/don/don-04.jpg' }
     ]
@@ -47,6 +51,7 @@ export const SECTIONS = [
   {
     slug: 'textes',
     name: 'Textes juridiques',
+    path: '/textes',
     slots: [
       { key: 'header', label: 'Bannière de page', default: '/images/photos/don/don-02.jpg' }
     ]
@@ -54,6 +59,7 @@ export const SECTIONS = [
   {
     slug: 'adhesion',
     name: 'Adhésion',
+    path: '/adhesion',
     slots: [
       { key: 'header', label: 'Bannière de page', default: '/images/photos/scolaire/scolaire-04.jpg' }
     ]
@@ -61,6 +67,7 @@ export const SECTIONS = [
   {
     slug: 'contact',
     name: 'Contact',
+    path: '/contact',
     slots: [
       { key: 'header', label: 'Bannière de page', default: '/images/photos/don/don-03.jpg' }
     ]
@@ -68,6 +75,7 @@ export const SECTIONS = [
   {
     slug: 'partenaires',
     name: 'Partenaires',
+    path: '/partenaires',
     freePhotos: true,
     slots: [
       { key: 'header', label: 'Bannière de page', default: '/images/photos/don/don-04.jpg' },
@@ -76,35 +84,39 @@ export const SECTIONS = [
     ]
   },
   {
-    slug: 'sanitaire',
-    name: 'Appui sanitaire',
-    freePhotos: true,
-    slots: [
-      { key: 'cover', label: 'Image de couverture', default: '/images/photos/sanitaire/sanitaire-01.jpg' }
-    ]
-  },
-  {
     slug: 'scolaire',
-    name: 'Appui scolaire',
+    name: 'Pilier 1 · Garantir une éducation de qualité pour tous',
+    path: '/actions/education',
     freePhotos: true,
     slots: [
       { key: 'cover', label: 'Image de couverture', default: '/images/photos/scolaire/scolaire-01.jpg' }
     ]
   },
   {
-    slug: 'jeux',
-    name: 'Espaces de jeux',
+    slug: 'genre',
+    name: "Pilier 2 · Promouvoir l'égalité des genres et l'autonomisation des femmes",
+    path: '/actions/genre',
     freePhotos: true,
     slots: [
-      { key: 'cover', label: 'Image de couverture', default: '/images/photos/jeux/jeux-01.jpg' }
+      { key: 'cover', label: 'Image de couverture', default: '/images/photos/scolaire/scolaire-02.jpg' }
     ]
   },
   {
-    slug: 'donEcole',
-    name: 'Dons aux écoles',
+    slug: 'sanitaire',
+    name: 'Pilier 3 · Améliorer la santé et le bien-être des populations',
+    path: '/actions/sante',
     freePhotos: true,
     slots: [
-      { key: 'cover', label: 'Image de couverture', default: '/images/photos/don/don-01.jpg' }
+      { key: 'cover', label: 'Image de couverture', default: '/images/photos/sanitaire/sanitaire-01.jpg' }
+    ]
+  },
+  {
+    slug: 'environnement',
+    name: "Pilier 4 · Protéger l'environnement et renforcer la résilience des communautés",
+    path: '/actions/environnement',
+    freePhotos: true,
+    slots: [
+      { key: 'cover', label: 'Image de couverture', default: '/images/photos/don/don-02.jpg' }
     ]
   }
 ]

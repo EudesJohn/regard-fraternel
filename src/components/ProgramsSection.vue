@@ -5,7 +5,7 @@ import { getPhotos, photoUrl } from '../lib/photos.js'
 import PhotoLightbox from './PhotoLightbox.vue'
 import Icon from './Icon.vue'
 
-const activeId = ref('sanitaire')
+const activeId = ref('education')
 const lightboxOpen = ref(false)
 const lightboxIndex = ref(0)
 
@@ -31,14 +31,14 @@ watch(
     <div class="container">
       <p class="eyebrow reveal" v-reveal>Nos actions</p>
       <h2 class="section-title reveal" v-reveal>
-        Des programmes <em>concrets</em> sur le terrain
+        Nos quatre piliers <em>d'intervention</em>
       </h2>
       <p class="section-intro reveal" v-reveal>
-        Santé, éducation, loisirs et dons : découvrez les actions menées par
-        REGARD FRATERNEL auprès des communautés. Cliquez sur les photos pour les agrandir.
+        Éducation, égalité des genres, santé et environnement : découvrez les actions
+        menées par REGARD FRATERNEL auprès des communautés. Cliquez sur les photos pour les agrandir.
       </p>
 
-      <div class="program-tabs reveal" v-reveal role="tablist" aria-label="Programmes">
+      <div class="program-tabs reveal" v-reveal role="tablist" aria-label="Piliers">
         <button
           v-for="p in programmes"
           :key="p.id"
@@ -58,15 +58,9 @@ watch(
           <p class="program-panel__sub">{{ active.sousTitre }}</p>
           <p class="program-panel__text">{{ active.texte }}</p>
           <a href="#adhesion" class="btn btn--dark">
-            Soutenir ce programme
+            Soutenir ce pilier
             <Icon name="arrowRight" :size="18" />
           </a>
-          <div class="program-stats">
-            <div v-for="s in active.stats" :key="s.label" class="program-stat">
-              <strong>{{ s.valeur }}</strong>
-              <span>{{ s.label }}</span>
-            </div>
-          </div>
         </div>
 
         <div class="gallery reveal" v-reveal style="--reveal-delay: 120ms">

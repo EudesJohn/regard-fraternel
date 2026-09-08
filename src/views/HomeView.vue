@@ -62,8 +62,8 @@ onMounted(async () => {
 onBeforeUnmount(() => clearInterval(timer))
 
 const stats = [
-  { valeur: '2025', label: "Année de fondation" },
-  { valeur: '4', label: 'Programmes d’action' },
+  { valeur: '2013', label: "Année de fondation" },
+  { valeur: '4', label: "Piliers d'intervention" },
   { valeur: '93', label: 'Actions documentées' },
   { valeur: '3', label: 'Partenaires engagés' }
 ]
@@ -142,7 +142,7 @@ const stats = [
             </h2>
             <p>
               REGARD FRATERNEL (RF) est une Organisation Non Gouvernementale de droit
-              béninois, à but non lucratif, apolitique et laïque. Fondée le
+              béninois, à but non lucratif, apolitique et laïque. Fondée en
               {{ site.fondation }} à Cotonou, elle est régie par la {{ site.loi }}.
             </p>
             <p>
@@ -217,10 +217,10 @@ const stats = [
     <section class="section">
       <div class="container">
         <p class="eyebrow reveal" v-reveal>Nos actions</p>
-        <h2 class="section-title reveal" v-reveal>Des programmes <em>concrets</em> sur le terrain</h2>
+        <h2 class="section-title reveal" v-reveal>Nos quatre piliers <em>d'intervention</em></h2>
         <p class="section-intro reveal" v-reveal>
-          Santé, éducation, loisirs et dons : découvrez les actions menées par
-          REGARD FRATERNEL auprès des communautés.
+          Éducation, égalité des genres, santé et environnement : découvrez les actions
+          menées par REGARD FRATERNEL auprès des communautés.
         </p>
 
         <div class="program-cards">
@@ -234,7 +234,7 @@ const stats = [
             <img :src="cover[p.photos]" :alt="p.titre" />
             <div class="program-card__scrim"></div>
             <div class="program-card__body">
-              <span class="program-card__num">{{ p.numero }}</span>
+              <span class="program-card__num">Pilier {{ p.numero }}</span>
               <h3>{{ p.titre }}</h3>
               <p>{{ p.sousTitre }}</p>
               <span class="program-card__link">

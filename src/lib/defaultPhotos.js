@@ -3,6 +3,7 @@
 // Chaque entrée suit la forme { url, caption } retournée par getPhotos().
 
 export const defaultPhotos = {
+  /* Galeries des quatre piliers (clés = slugs Supabase, remplies depuis l'admin) */
   sanitaire: [
     { url: '/images/photos/sanitaire/sanitaire-01.jpg', caption: '' },
     { url: '/images/photos/sanitaire/sanitaire-02.jpg', caption: '' },
@@ -104,6 +105,8 @@ export const defaultPhotos = {
     { url: '/images/photos/don/don-44.jpg', caption: '' },
     { url: '/images/photos/don/don-45.jpg', caption: '' },
   ],
+  genre: [],
+  environnement: [],
   partenaires: [
     { url: '/images/partenaires/mama-yovo.jpg', caption: 'Mama Yovo' },
   ],

@@ -33,7 +33,7 @@ const { url: slotUrl } = useSectionSlots('apropos')
             </h2>
             <p>
               REGARD FRATERNEL (RF) est une Organisation Non Gouvernementale de droit
-              béninois, à but non lucratif, apolitique et laïque. Fondée le
+              béninois, à but non lucratif, apolitique et laïque. Fondée en
               {{ site.fondation }} à Cotonou, elle est régie par la {{ site.loi }}
               relative aux associations et fondations en République du Bénin.
             </p>

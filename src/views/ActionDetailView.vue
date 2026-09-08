@@ -11,7 +11,7 @@ const route = useRoute()
 const programme = computed(() => programmes.find((p) => p.id === route.params.id) || programmes[0])
 const photos = ref([])
 
-// Couverture de la page = emplacement fixe « cover » de la section du programme
+// Couverture de la page = emplacement fixe « cover » de la section du pilier
 const cover = ref('')
 
 const lightboxOpen = ref(false)
@@ -86,7 +86,7 @@ watch(
       :title="programme.titre"
       :subtitle="programme.sousTitre"
       :image="cover"
-      :eyebrow="`Programme ${programme.numero}`"
+      :eyebrow="`Pilier ${programme.numero}`"
     />
 
     <section class="section">
@@ -97,20 +97,13 @@ watch(
             <p class="program-panel__sub">{{ programme.sousTitre }}</p>
             <p class="program-panel__text">{{ programme.texte }}</p>
 
-            <div class="program-stats">
-              <div v-for="s in programme.stats" :key="s.label" class="program-stat">
-                <strong>{{ s.valeur }}</strong>
-                <span>{{ s.label }}</span>
-              </div>
-            </div>
-
             <div style="margin-top: 34px; display: flex; gap: 14px; flex-wrap: wrap">
               <RouterLink to="/adhesion" class="btn btn--dark">
-                Soutenir ce programme
+                Soutenir ce pilier
                 <Icon name="arrowRight" :size="18" />
               </RouterLink>
               <RouterLink to="/actions" class="btn" style="border: 1.5px solid var(--sand-300); color: var(--ink-soft)">
-                Tous les programmes
+                Tous les piliers
               </RouterLink>
             </div>
           </div>
@@ -124,6 +117,14 @@ watch(
               <div class="gallery-loading__bar-fill" :style="{ width: loadProgress + '%' }"></div>
             </div>
             <p class="gallery-loading__hint">Les photos sont préparées pour un affichage rapide.</p>
+          </div>
+
+          <!-- Galerie vide (pilier sans photo pour l'instant) -->
+          <div v-else-if="!photos.length" class="gallery gallery--empty">
+            <p>
+              Aucune photo pour ce pilier pour l'instant — les actions sont en cours de
+              documentation. Revenez bientôt !
+            </p>
           </div>
 
           <!-- Galerie -->

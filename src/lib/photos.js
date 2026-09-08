@@ -219,3 +219,22 @@ export async function movePhoto(photo, dir, list) {
   await updatePhoto(other.id, { position: photo.position })
 }
 
+/**
+ * Enregistre un nouvel ordre complet de photos (glisser-déposer).
+ * Deux passes pour éviter les collisions de position : décalage puis positions finales.
+ */
+export async function reorderPhotos(list) {
+  const OFFSET = 100000
+  for (let i = 0; i < list.length; i++) {
+    if (list[i].position !== i) {
+      await updatePhoto(list[i].id, { position: i + OFFSET })
+    }
+  }
+  for (let i = 0; i < list.length; i++) {
+    if (list[i].position !== i) {
+      await updatePhoto(list[i].id, { position: i })
+    }
+    list[i].position = i
+  }
+}
+

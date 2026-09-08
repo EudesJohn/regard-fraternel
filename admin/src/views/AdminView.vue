@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 import { supabase, isSupabaseConfigured } from '../../../src/lib/supabase.js'
 import {
   SECTIONS,
@@ -9,6 +9,7 @@ import {
   replacePhoto,
   deletePhoto,
   movePhoto,
+  reorderPhotos,
   getSectionSlots,
   replaceSlotPhoto,
   deleteSlotPhoto,
@@ -49,6 +50,12 @@ const slotCaptions = ref({})
 const savingSlot = ref(null)
 const savedSlot = ref(null)
 
+/* Glisser-déposer */
+const dragOverSlot = ref(null) // clé de l'emplacement survolé par un fichier
+const dragOverAdd = ref(false) // zone d'ajout survolée par des fichiers
+const dragIndex = ref(null) // index de la photo déplacée (réordonnancement)
+const dragOverIndex = ref(null) // index de la photo ciblée par le déplacement
+
 const sectionObj = computed(() => SECTIONS.find((s) => s.slug === activeSection.value))
 const sectionLabel = computed(() => sectionObj.value?.name || activeSection.value)
 
@@ -72,7 +79,28 @@ onMounted(async () => {
       loadSlots()
     }
   })
+
+  // Empêche le navigateur d'ouvrir une image lâchée en dehors des zones de dépôt
+  window.addEventListener('dragover', onWindowDragOver)
+  window.addEventListener('drop', onWindowDrop)
 })
+
+onBeforeUnmount(() => {
+  window.removeEventListener('dragover', onWindowDragOver)
+  window.removeEventListener('drop', onWindowDrop)
+})
+
+const hasFiles = (e) => Array.from(e.dataTransfer?.types || []).includes('Files')
+
+const onWindowDragOver = (e) => {
+  if (hasFiles(e)) e.preventDefault() // bloque la navigation vers le fichier
+}
+
+const onWindowDrop = (e) => {
+  dragOverSlot.value = null
+  dragOverAdd.value = false
+  if (hasFiles(e)) e.preventDefault()
+}
 
 const signIn = async () => {
   loginBusy.value = true
@@ -152,6 +180,33 @@ const onSlotFile = async (slot, e) => {
   }
 }
 
+/* Dépôt d'un fichier sur un emplacement fixe : remplace la photo */
+const onDropSlot = async (slot, e) => {
+  dragOverSlot.value = null
+  const file = Array.from(e.dataTransfer?.files || []).find((f) => f.type.startsWith('image/'))
+  if (!file) return
+  busy.value = true
+  try {
+    await replaceSlotPhoto(activeSection.value, slot.key, file, slots.value[slot.key])
+    flash(`« ${slot.label} » mise à jour.`)
+    await loadSlots()
+  } catch (err) {
+    flash(withHint(err), 'error')
+  } finally {
+    busy.value = false
+  }
+}
+
+const onSlotDragEnter = (slot) => {
+  if (!busy.value) dragOverSlot.value = slot.key
+}
+
+const onSlotDragLeave = (slot, e) => {
+  // Ignore les dragleave déclenchés par les éléments enfants
+  if (e.relatedTarget && e.currentTarget.contains(e.relatedTarget)) return
+  if (dragOverSlot.value === slot.key) dragOverSlot.value = null
+}
+
 const saveSlotCaption = async (slot) => {
   busy.value = true
   savingSlot.value = slot.key
@@ -205,6 +260,8 @@ const switchSection = (slug) => {
   editingId.value = null
   replacingId.value = null
   savedSlot.value = null
+  dragIndex.value = null
+  dragOverIndex.value = null
   loadPhotos()
   loadSlots()
 }
@@ -230,6 +287,69 @@ const addPhotos = async () => {
   } finally {
     busy.value = false
   }
+}
+
+/* Dépôt de fichiers sur la zone d'ajout : ajoute directement les photos */
+const onDropAdd = async (e) => {
+  dragOverAdd.value = false
+  const imgs = Array.from(e.dataTransfer?.files || []).filter((f) => f.type.startsWith('image/'))
+  if (!imgs.length) return
+  busy.value = true
+  try {
+    for (const file of imgs) {
+      await addPhoto(activeSection.value, file, newCaption.value.trim())
+    }
+    flash(`${imgs.length} photo(s) ajoutée(s).`)
+    await loadPhotos()
+  } catch (err) {
+    flash(withHint(err), 'error')
+  } finally {
+    busy.value = false
+  }
+}
+
+/* ---------- Glisser-déposer : réordonnancement des photos ---------- */
+const onDragStartPhoto = (index, e) => {
+  dragIndex.value = index
+  e.dataTransfer.effectAllowed = 'move'
+  e.dataTransfer.setData('text/plain', String(index)) // requis par certains navigateurs
+}
+
+const onDragOverPhoto = (index, e) => {
+  if (dragIndex.value === null) return
+  e.preventDefault()
+  e.dataTransfer.dropEffect = 'move'
+  dragOverIndex.value = index
+}
+
+const onDropPhoto = async (index, e) => {
+  e.preventDefault()
+  e.stopPropagation()
+  const from = dragIndex.value
+  dragIndex.value = null
+  dragOverIndex.value = null
+  if (from === null || from === index || busy.value) return
+
+  const list = [...photos.value]
+  const [moved] = list.splice(from, 1)
+  list.splice(index, 0, moved)
+  photos.value = list // mise à jour immédiate de l'interface
+
+  busy.value = true
+  try {
+    await reorderPhotos(list)
+    flash('Ordre des photos mis à jour.')
+  } catch (err) {
+    flash(withHint(err), 'error')
+    await loadPhotos()
+  } finally {
+    busy.value = false
+  }
+}
+
+const onDragEndPhoto = () => {
+  dragIndex.value = null
+  dragOverIndex.value = null
 }
 
 const startEdit = (photo) => {
@@ -359,7 +479,7 @@ VITE_SUPABASE_ANON_KEY=eyJ...</pre>
 
       <p v-if="notice" class="admin__notice" :class="`admin__notice--${noticeType}`">{{ notice }}</p>
 
-      <!-- Sélecteur de section -->
+      <!-- Sélecteur de section (noms exacts des pages du site) -->
       <div class="admin__tabs" role="tablist" aria-label="Sections">
         <button
           v-for="s in SECTIONS"
@@ -374,22 +494,42 @@ VITE_SUPABASE_ANON_KEY=eyJ...</pre>
         </button>
       </div>
 
+      <p v-if="sectionObj?.path" class="admin__page-path">
+        Page concernée :
+        <a :href="sectionObj.path" target="_blank" rel="noopener">{{ sectionObj.path }}</a>
+        <span class="admin__page-path-arrow">↗</span>
+      </p>
+
       <!-- Emplacements fixes -->
       <div v-if="sectionObj?.slots?.length" class="admin__panel">
         <h3 class="admin__subtitle">Photos de mise en page — {{ sectionLabel }}</h3>
         <p class="admin__text">
-          Remplacez ici les images affichées sur la page. Tant que vous ne personnalisez
-          pas un emplacement, la photo locale par défaut reste affichée (badge
-          « Photo par défaut »).
+          Remplacez ici les images affichées sur la page : cliquez sur « Remplacer » ou
+          <strong>glissez-déposez</strong> directement une photo sur la vignette. Tant que
+          vous ne personnalisez pas un emplacement, la photo locale par défaut reste
+          affichée (badge « Photo par défaut »).
         </p>
 
         <div class="admin__slots">
-          <article v-for="slot in sectionObj.slots" :key="slot.key" class="admin__slot">
+          <article
+            v-for="slot in sectionObj.slots"
+            :key="slot.key"
+            class="admin__slot"
+            :class="{ 'is-drop': dragOverSlot === slot.key }"
+            @dragenter.prevent="onSlotDragEnter(slot)"
+            @dragover.prevent
+            @dragleave="onSlotDragLeave(slot, $event)"
+            @drop.prevent="onDropSlot(slot, $event)"
+          >
             <div class="admin__slot-imgwrap">
               <img :src="slotImg(slot.key)" :alt="slot.label" />
               <span class="admin__slot-badge" :class="{ 'is-custom': slotIsCustom(slot.key) }">
                 {{ slotIsCustom(slot.key) ? 'Personnalisée' : 'Photo par défaut' }}
               </span>
+              <div v-if="dragOverSlot === slot.key" class="admin__slot-drop">
+                <Icon name="download" :size="28" />
+                <span>Déposez pour remplacer</span>
+              </div>
             </div>
             <div class="admin__slot-body">
               <h4>{{ slot.label }}</h4>
@@ -443,12 +583,22 @@ VITE_SUPABASE_ANON_KEY=eyJ...</pre>
       <!-- Photos libres -->
       <div v-if="sectionObj?.freePhotos" class="admin__panel">
         <h3 class="admin__subtitle">Galerie — {{ sectionLabel }}</h3>
-        <div class="admin__add">
+        <div
+          class="admin__add"
+          :class="{ 'is-drop': dragOverAdd }"
+          @dragenter.prevent="!busy && (dragOverAdd = true)"
+          @dragover.prevent
+          @dragleave="onSlotDragLeave({ key: '__add__' }, $event); dragOverAdd = false"
+          @drop.prevent="onDropAdd($event)"
+        >
           <label class="admin__file">
             <Icon name="zoomIn" :size="18" />
             Choisir des fichiers
             <input type="file" accept="image/*" multiple @change="onFilesSelected" />
           </label>
+          <span class="admin__drop-hint">
+            ou glissez-déposez vos photos ici
+          </span>
           <span v-if="files.length" class="admin__file-count">{{ files.length }} fichier(s) sélectionné(s)</span>
           <input
             v-model="newCaption"
@@ -463,10 +613,23 @@ VITE_SUPABASE_ANON_KEY=eyJ...</pre>
         </div>
 
         <div v-if="photos.length" class="admin__grid">
-          <article v-for="(photo, i) in photos" :key="photo.id" class="admin__photo">
+          <article
+            v-for="(photo, i) in photos"
+            :key="photo.id"
+            class="admin__photo"
+            :class="{ 'is-dragging': dragIndex === i, 'is-drop-target': dragOverIndex === i && dragIndex !== null && dragIndex !== i }"
+            draggable="true"
+            @dragstart="onDragStartPhoto(i, $event)"
+            @dragover="onDragOverPhoto(i, $event)"
+            @drop="onDropPhoto(i, $event)"
+            @dragend="onDragEndPhoto"
+          >
             <img :src="photo.url" :alt="photo.caption || 'Photo'" />
             <div class="admin__photo-tools">
               <div class="admin__photo-actions">
+                <span class="admin__drag-handle" title="Glisser pour réordonner">
+                  <Icon name="menu" :size="15" />
+                </span>
                 <button class="admin__icon-btn" title="Monter" :disabled="busy || i === 0" @click="reorder(photo, -1)">
                   <Icon name="chevronLeft" :size="16" style="transform: rotate(90deg)" />
                 </button>

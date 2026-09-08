@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { partenaires } from '../data.js'
 import { getPhotos, photoUrl } from '../lib/photos.js'
 import { useSectionSlots } from '../lib/useSectionSlots.js'
@@ -8,15 +8,6 @@ import Icon from '../components/Icon.vue'
 
 // Emplacements fixes : bannière, logo partenaire, fond CTA (remplaçables depuis l'application d'administration)
 const { url: slotUrl } = useSectionSlots('partenaires')
-
-const partnerLogos = computed(() => [
-  {
-    nom: 'Mama Yovo',
-    image: slotUrl('logo'),
-    description:
-      "Partenaire engagé aux côtés de REGARD FRATERNEL pour soutenir les actions éducatives et solidaires de l'ONG au Bénin."
-  }
-])
 
 /* Galerie des partenaires (gérée depuis l'application d'administration, section « partenaires ») */
 const photos = ref([])
@@ -44,31 +35,17 @@ onMounted(async () => {
         <h2 class="section-title reveal" v-reveal>Ils nous <em>soutiennent</em></h2>
         <p class="section-intro reveal" v-reveal>
           Des partenaires locaux et internationaux œuvrent avec nous pour faire vivre
-          nos programmes sur le terrain.
+          nos piliers d'intervention sur le terrain.
         </p>
 
         <div class="partenaires__grid">
-          <article
-            v-for="(p, i) in partnerLogos"
-            :key="p.nom"
-            class="partenaire-card partenaire-card--logo reveal"
-            v-reveal
-            :style="{ '--reveal-delay': i * 100 + 'ms' }"
-          >
-            <img class="partenaire-card__logo-img" :src="p.image" :alt="`Logo ${p.nom}`" />
-            <div>
-              <h3>{{ p.nom }}</h3>
-              <p>{{ p.description }}</p>
-            </div>
-          </article>
-
           <!-- Photos ajoutées par l'admin (section partenaires) -->
           <article
             v-for="(photo, i) in photos"
             :key="photo.id || photo.url"
             class="partenaire-card partenaire-card--logo reveal"
             v-reveal
-            :style="{ '--reveal-delay': (partnerLogos.length + i) * 100 + 'ms' }"
+            :style="{ '--reveal-delay': i * 100 + 'ms' }"
           >
             <img class="partenaire-card__logo-img" :src="photoUrl(photo.url, 480)" :alt="photo.caption || 'Partenaire'" loading="lazy" />
             <div v-if="photo.caption">
@@ -81,7 +58,7 @@ onMounted(async () => {
             :key="p.nom"
             class="partenaire-card reveal"
             v-reveal
-            :style="{ '--reveal-delay': (partnerLogos.length + photos.length + i) * 100 + 'ms' }"
+            :style="{ '--reveal-delay': (photos.length + i) * 100 + 'ms' }"
           >
             <div class="partenaire-card__icon"><Icon :name="p.icon" :size="26" /></div>
             <h3>{{ p.nom }}</h3>
