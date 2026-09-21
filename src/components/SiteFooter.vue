@@ -6,9 +6,10 @@ const links = [
   { label: 'Accueil', to: '/' },
   { label: 'À propos', to: '/apropos' },
   { label: 'Nos actions', to: '/actions' },
+  { label: 'Nos histoires', to: '/histoires' },
   { label: 'Gouvernance', to: '/gouvernance' },
-  { label: 'Textes juridiques', to: '/textes' },
   { label: 'Adhésion', to: '/adhesion' },
+  { label: 'Faire un don', to: '/don' },
   { label: 'Partenaires', to: '/partenaires' },
   { label: 'Contact', to: '/contact' }
 ]
@@ -48,10 +49,8 @@ const contact = [
         <div>
           <h5>Légal</h5>
           <ul class="footer__links">
-            <li><RouterLink to="/textes">Statuts</RouterLink></li>
-            <li><RouterLink to="/textes">Règlement Intérieur</RouterLink></li>
-            <li><RouterLink to="/textes">Procès-Verbal</RouterLink></li>
-            <li><a :href="site.documents" target="_blank" rel="noopener">Textes complets (PDF)</a></li>
+            <li>{{ site.recu }}</li>
+            <li>Régie par la {{ site.loi }}</li>
           </ul>
         </div>
 

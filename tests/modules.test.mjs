@@ -8,18 +8,26 @@ import { test, describe } from 'node:test'
 import assert from 'node:assert/strict'
 
 describe('modules — import sans erreur d évaluation', () => {
-  test('sections.js expose le registre complet (12 sections)', async () => {
+  test('sections.js expose le registre complet (13 sections)', async () => {
     const m = await import('../src/lib/sections.js')
-    assert.ok(Array.isArray(m.SECTIONS) && m.SECTIONS.length === 12)
+    assert.ok(Array.isArray(m.SECTIONS) && m.SECTIONS.length === 13)
     assert.equal(m.SECTIONS[0].slug, 'hero')
     assert.equal(typeof m.sectionLabel, 'function')
     assert.equal(typeof m.slotDefault, 'function')
   })
 
+  test('sections.js : « textes » supprimé, « histoires » et « don » présents', async () => {
+    const m = await import('../src/lib/sections.js')
+    const slugs = m.SECTIONS.map((s) => s.slug)
+    assert.ok(!slugs.includes('textes'), 'la section textes doit être supprimée')
+    assert.ok(slugs.includes('histoires'))
+    assert.ok(slugs.includes('don'))
+  })
+
   test('photos.js évalue sans ReferenceError et ré-exporte SECTIONS', async () => {
     // AVANT correctif, cet import levait : « SECTIONS is not defined ».
     const m = await import('../src/lib/photos.js')
-    assert.ok(Array.isArray(m.SECTIONS) && m.SECTIONS.length === 12)
+    assert.ok(Array.isArray(m.SECTIONS) && m.SECTIONS.length === 13)
     assert.equal(typeof m.getPhotos, 'function')
     assert.equal(typeof m.updatePhoto, 'function')
   })
@@ -51,5 +59,15 @@ describe('modules — import sans erreur d évaluation', () => {
     const v = await import('../src/lib/validation.js')
     assert.equal(typeof c.sendContactMessage, 'function')
     assert.equal(typeof v.sanitizeName, 'function')
+  })
+
+  test('stories.js, partners.js et don.js évaluent sans erreur', async () => {
+    const s = await import('../src/lib/stories.js')
+    const p = await import('../src/lib/partners.js')
+    const d = await import('../src/lib/don.js')
+    assert.equal(typeof s.getStories, 'function')
+    assert.equal(typeof s.getStoriesConfig, 'function')
+    assert.equal(typeof p.getPartners, 'function')
+    assert.equal(typeof d.getDonConfig, 'function')
   })
 })

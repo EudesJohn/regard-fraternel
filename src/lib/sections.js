@@ -49,9 +49,17 @@ export const SECTIONS = [
     ]
   },
   {
-    slug: 'textes',
-    name: 'Textes juridiques',
-    path: '/textes',
+    slug: 'histoires',
+    name: 'Nos histoires',
+    path: '/histoires',
+    slots: [
+      { key: 'header', label: 'Bannière de page', default: '/images/photos/don/don-06.jpg' }
+    ]
+  },
+  {
+    slug: 'don',
+    name: 'Faire un don',
+    path: '/don',
     slots: [
       { key: 'header', label: 'Bannière de page', default: '/images/photos/don/don-02.jpg' }
     ]

@@ -102,9 +102,9 @@ const { url: slotUrl } = useSectionSlots('apropos')
             <h3>Nos références légales</h3>
             <p>{{ site.recu }} — régie par la {{ site.loi }}.</p>
           </div>
-          <RouterLink class="btn btn--primary" to="/textes">
-            <Icon name="fileText" :size="18" />
-            Textes juridiques
+          <RouterLink class="btn btn--primary" to="/adhesion">
+            <Icon name="handshake" :size="18" />
+            Devenir membre
           </RouterLink>
         </div>
       </div>

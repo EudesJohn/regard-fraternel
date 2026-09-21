@@ -220,6 +220,148 @@ end;
 $$;
 
 -- ============================================================
+-- CONFIGURATION DES DONS (page /don — éditable dans l'admin)
+-- ============================================================
+-- Ligne unique (singleton) contenant :
+--   amounts          : montants prédéfinis (FCFA) proposés au visiteur
+--   payment_channels : canaux de paiement affichés après choix d'un montant
+--                      [{ label, number, holder, description }]
+--   instructions     : consignes à suivre après le paiement (modérées par l'admin)
+--   note             : message libre affiché en bas de page (usage des dons…)
+
+create table if not exists public.don_config (
+  id smallint primary key default 1 check (id = 1),
+  amounts jsonb not null default '[500, 1000, 2500, 5000, 10000, 25000, 50000]'::jsonb,
+  payment_channels jsonb not null default '[]'::jsonb,
+  instructions text not null default '',
+  note text not null default '',
+  updated_at timestamptz not null default now()
+);
+
+-- Ligne par défaut (recréée si absente — idempotent)
+insert into public.don_config (id) values (1)
+on conflict (id) do nothing;
+
+alter table public.don_config enable row level security;
+
+-- Lecture publique (la page doit afficher montants et coordonnées)
+drop policy if exists "don_config_select_public" on public.don_config;
+create policy "don_config_select_public" on public.don_config
+  for select using (true);
+
+-- Écriture : réservée au compte administrateur (comme les photos)
+drop policy if exists "don_config_update_admin" on public.don_config;
+create policy "don_config_update_admin" on public.don_config
+  for update to authenticated using (public.is_admin()) with check (public.is_admin());
+
+drop policy if exists "don_config_insert_admin" on public.don_config;
+create policy "don_config_insert_admin" on public.don_config
+  for insert to authenticated with check (public.is_admin());
+
+drop policy if exists "don_config_delete_admin" on public.don_config;
+create policy "don_config_delete_admin" on public.don_config
+  for delete to authenticated using (public.is_admin());
+
+-- ============================================================
+-- PARTENAIRES (cartes éditables dans l'admin — pages /partenaires et /contact)
+-- ============================================================
+create table if not exists public.partners (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  description text not null default '',
+  email text not null default '',
+  phone text not null default '',
+  position integer not null default 0,
+  created_at timestamptz not null default now()
+);
+
+alter table public.partners enable row level security;
+
+drop policy if exists "partners_select_public" on public.partners;
+create policy "partners_select_public" on public.partners
+  for select using (true);
+
+drop policy if exists "partners_insert_admin" on public.partners;
+create policy "partners_insert_admin" on public.partners
+  for insert to authenticated with check (public.is_admin());
+
+drop policy if exists "partners_update_admin" on public.partners;
+create policy "partners_update_admin" on public.partners
+  for update to authenticated using (public.is_admin()) with check (public.is_admin());
+
+drop policy if exists "partners_delete_admin" on public.partners;
+create policy "partners_delete_admin" on public.partners
+  for delete to authenticated using (public.is_admin());
+
+-- ============================================================
+-- NOS HISTOIRES (page /histoires — éditable dans l'admin)
+-- ============================================================
+
+-- Récits : chaque histoire = une photo + textes.
+create table if not exists public.stories (
+  id uuid primary key default gen_random_uuid(),
+  url text not null,                    -- photo de l'histoire (bucket « photos » ou chemin local)
+  caption text not null default '',     -- titre court de l'histoire
+  kicker text not null default '',      -- sur-titre (ex : « Éducation », « Santé »)
+  body text not null default '',        -- récit complet
+  position integer not null default 0,
+  created_at timestamptz not null default now()
+);
+
+alter table public.stories enable row level security;
+
+drop policy if exists "stories_select_public" on public.stories;
+create policy "stories_select_public" on public.stories
+  for select using (true);
+
+drop policy if exists "stories_insert_admin" on public.stories;
+create policy "stories_insert_admin" on public.stories
+  for insert to authenticated with check (public.is_admin());
+
+drop policy if exists "stories_update_admin" on public.stories;
+create policy "stories_update_admin" on public.stories
+  for update to authenticated using (public.is_admin()) with check (public.is_admin());
+
+drop policy if exists "stories_delete_admin" on public.stories;
+create policy "stories_delete_admin" on public.stories
+  for delete to authenticated using (public.is_admin());
+
+-- Textes de la page (bannière, intro, conclusion) — ligne unique éditable.
+create table if not exists public.stories_config (
+  id smallint primary key default 1 check (id = 1),
+  subtitle text not null default '',
+  intro text not null default '',
+  outro text not null default '',
+  updated_at timestamptz not null default now()
+);
+
+insert into public.stories_config (id, subtitle, intro, outro) values (
+  1,
+  'Des histoires de courage, d''espoir et de changement',
+  'Découvrez les récits inspirants des enfants, des familles et des communautés que Regard Fraternel accompagne au Bénin. À travers leurs parcours, découvrez les défis rencontrés, les espoirs retrouvés et les changements rendus possibles grâce à la solidarité et à l''engagement de nos partenaires, donateurs et bénévoles.',
+  'Chaque histoire compte. Chaque geste peut changer une vie.'
+)
+on conflict (id) do nothing;
+
+alter table public.stories_config enable row level security;
+
+drop policy if exists "stories_config_select_public" on public.stories_config;
+create policy "stories_config_select_public" on public.stories_config
+  for select using (true);
+
+drop policy if exists "stories_config_update_admin" on public.stories_config;
+create policy "stories_config_update_admin" on public.stories_config
+  for update to authenticated using (public.is_admin()) with check (public.is_admin());
+
+drop policy if exists "stories_config_insert_admin" on public.stories_config;
+create policy "stories_config_insert_admin" on public.stories_config
+  for insert to authenticated with check (public.is_admin());
+
+drop policy if exists "stories_config_delete_admin" on public.stories_config;
+create policy "stories_config_delete_admin" on public.stories_config
+  for delete to authenticated using (public.is_admin());
+
+-- ============================================================
 -- Créer le compte administrateur
 -- ============================================================
 -- 1. Dans le dashboard : Authentication → Users → Add user

@@ -127,7 +127,7 @@ if (ctaCustomBefore) {
 
 // ---------- État initial ----------
 const tabs = await evalv('document.querySelectorAll(".admin__tab").length')
-ok(`12 onglets de sections affichés (reçu : ${tabs})`, tabs === 12)
+ok(`13 onglets de sections affichés (reçu : ${tabs})`, tabs === 13)
 const slotCount = await evalv('document.querySelectorAll(".admin__slot").length')
 ok(`4 emplacements fixes sur l'Accueil (reçu : ${slotCount})`, slotCount === 4)
 const badgeCta = await evalv('document.querySelectorAll(".admin__slot")[3]?.querySelector(".admin__slot-badge")?.textContent.trim()')

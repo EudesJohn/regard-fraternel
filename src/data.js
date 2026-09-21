@@ -9,8 +9,7 @@ export const site = {
   bp: '05 BP 487 — Cotonou, République du Bénin',
   tel: ['+229 01 97 26 96 54', '+229 01 21 33 08 15'],
   email: 'ongregardfraternel13@gmail.com',
-  fondation: '2013',
-  documents: '/docs/textes-juridiques.pdf'
+  fondation: '2013'
 }
 
 export const organes = [
@@ -111,15 +110,8 @@ export const commissaires = [
   }
 ]
 
-export const partenaires = [
-  {
-    nom: 'Partenaires italiens',
-    description: "Nos amis italiens soutiennent les actions éducatives et solidaires de l'ONG au Bénin — « Les Amis d'Antonio », « Amici di Laura e Don Luciano » et la Croce Rossa Italiana.",
-    email: 'tonydr@libero.it',
-    tel: '+39 347 655 5030',
-    icon: 'handshake'
-  }
-]
+/* Partenaires : les cartes sont désormais gérées en base (src/lib/partners.js)
+   et éditables depuis l'admin. Cette liste ne sert plus à l'affichage. */
 
 export const objectifs = [
   {

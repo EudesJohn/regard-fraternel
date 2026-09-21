@@ -6,10 +6,13 @@ const routes = [
   { path: '/actions', name: 'actions', component: () => import('./views/ActionsView.vue'), meta: { title: 'Nos actions' } },
   { path: '/actions/:id', name: 'action-detail', component: () => import('./views/ActionDetailView.vue'), meta: { title: 'Action' } },
   { path: '/gouvernance', name: 'gouvernance', component: () => import('./views/GovernanceView.vue'), meta: { title: 'Gouvernance' } },
-  { path: '/textes', name: 'textes', component: () => import('./views/LegalView.vue'), meta: { title: 'Textes juridiques' } },
+  { path: '/histoires', name: 'histoires', component: () => import('./views/StoriesView.vue'), meta: { title: 'Nos histoires' } },
+  { path: '/don', name: 'don', component: () => import('./views/DonView.vue'), meta: { title: 'Faire un don' } },
   { path: '/adhesion', name: 'adhesion', component: () => import('./views/MembershipView.vue'), meta: { title: 'Adhésion' } },
   { path: '/partenaires', name: 'partenaires', component: () => import('./views/PartenairesView.vue'), meta: { title: 'Partenaires' } },
   { path: '/contact', name: 'contact', component: () => import('./views/ContactView.vue'), meta: { title: 'Contact' } },
+  // Anciennes URLs redirigées (page Textes juridiques supprimée du site)
+  { path: '/textes', redirect: '/' },
   // NB : l'administration vit dans une app séparée (dossier admin/)
   { path: '/:pathMatch(.*)*', redirect: '/' }
 ]

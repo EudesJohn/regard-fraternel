@@ -12,7 +12,7 @@ const links = [
   { to: '/apropos', label: 'À propos', match: '/apropos' },
   { to: '/actions', label: 'Nos actions', match: '/actions' },
   { to: '/gouvernance', label: 'Gouvernance', match: '/gouvernance' },
-  { to: '/textes', label: 'Textes', match: '/textes' },
+  { to: '/histoires', label: 'Nos histoires', match: '/histoires' },
   { to: '/adhesion', label: 'Adhésion', match: '/adhesion' },
   { to: '/partenaires', label: 'Partenaires', match: '/partenaires' },
   { to: '/contact', label: 'Contact', match: '/contact' }
@@ -67,7 +67,7 @@ onBeforeUnmount(() => {
         </RouterLink>
       </nav>
 
-      <RouterLink to="/adhesion" class="btn btn--primary nav__cta">Rejoindre l'ONG</RouterLink>
+      <RouterLink to="/don" class="btn btn--primary nav__cta">Faire un don</RouterLink>
 
       <button
         class="nav__toggle"

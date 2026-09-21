@@ -921,6 +921,131 @@ select:focus-visible,
   font-size: 0.95rem;
 }
 
+/* ---------- Partenaires / Histoires (cartes éditables) ---------- */
+
+.admin__partner-form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.admin__partner-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.admin__partners {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 22px;
+}
+
+.admin__partner {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  background: var(--ivory);
+  border: 1px solid var(--sand-200);
+  border-radius: var(--radius-sm);
+  padding: 16px 18px;
+}
+
+.admin__partner-order {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.admin__partner-img {
+  width: 92px;
+  height: 70px;
+  object-fit: cover;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.admin__partner-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.admin__partner-body h4 {
+  margin: 0 0 4px;
+  font-size: 1.02rem;
+  color: var(--forest-900);
+}
+
+.admin__partner-kicker {
+  margin: 0 0 2px;
+  color: var(--terracotta-500);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.admin__partner-desc {
+  margin: 0 0 6px;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+
+.admin__partner-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin: 0 0 10px;
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+}
+
+.admin__partner-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.admin__btn-file {
+  position: relative;
+  overflow: hidden;
+}
+
+.admin__channels-title {
+  margin-top: 18px;
+  color: var(--forest-900);
+  font-size: 1.02rem;
+}
+
+.admin__btn-add-channel {
+  align-self: flex-start;
+}
+
+.don-channel-edit {
+  background: var(--sand-100);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  margin-bottom: 12px;
+}
+
+.don-channel-edit__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+@media (max-width: 700px) {
+  .admin__partner-row,
+  .don-channel-edit__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin__partner {
+    flex-wrap: wrap;
+  }
+}
+
 /* ---------- Responsive ---------- */
 
 @media (max-width: 700px) {

@@ -1,6 +1,7 @@
 <script setup>
 import { reactive, ref, onMounted } from 'vue'
-import { site, partenaires } from '../data.js'
+import { site } from '../data.js'
+import { getPartners } from '../lib/partners.js'
 import { getPhotos, photoUrl } from '../lib/photos.js'
 import { useSectionSlots } from '../lib/useSectionSlots.js'
 import PageHeader from '../components/PageHeader.vue'
@@ -94,10 +95,12 @@ const submit = async () => {
   }
 }
 
-/* Photos partenaires ajoutées depuis l'admin (section « partenaires ») */
+/* Photos et cartes partenaires gérées depuis l'admin */
 const photos = ref([])
+const partenaires = ref([])
 onMounted(async () => {
   photos.value = await getPhotos('partenaires')
+  partenaires.value = await getPartners()
 })
 
 const contactItems = [
@@ -207,18 +210,18 @@ const contactItems = [
             </div>
           </article>
 
-          <article v-for="(p, i) in partenaires" :key="p.nom" class="partenaire-card reveal" v-reveal :style="{ '--reveal-delay': i * 100 + 'ms' }">
-            <div class="partenaire-card__icon"><Icon :name="p.icon" :size="26" /></div>
-            <h3>{{ p.nom }}</h3>
+          <article v-for="p in partenaires" :key="p.id" class="partenaire-card reveal" v-reveal>
+            <div class="partenaire-card__icon"><Icon name="handshake" :size="26" /></div>
+            <h3>{{ p.name }}</h3>
             <p>{{ p.description }}</p>
-            <ul class="partenaire-card__contact">
-              <li>
+            <ul v-if="p.email || p.phone" class="partenaire-card__contact">
+              <li v-if="p.email">
                 <Icon name="mail" :size="16" />
                 <a :href="`mailto:${p.email}`">{{ p.email }}</a>
               </li>
-              <li>
+              <li v-if="p.phone">
                 <Icon name="phone" :size="16" />
-                <a :href="`tel:${p.tel.replace(/\s/g, '')}`">{{ p.tel }}</a>
+                <a :href="`tel:${p.phone.replace(/\s/g, '')}`">{{ p.phone }}</a>
               </li>
             </ul>
           </article>
