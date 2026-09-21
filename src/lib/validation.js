@@ -22,6 +22,7 @@ export const LIMITS = {
   phone: 20,
   message: 2000,
   caption: 120,
+  description: 500,
   url: 2048
 }
 

@@ -3,7 +3,7 @@ import { defaultPhotos } from './defaultPhotos.js'
 // Import explicite : SECTIONS est utilisé dans ce module (whitelist), et
 // ré-exporté — les deux sont nécessaires, un seul ne suffit pas.
 import { SECTIONS, sectionLabel, slotDefault } from './sections.js'
-import { sanitizeCaption, sanitizePhotoUrl, assertSafeUpload, safeFileName } from './validation.js'
+import { sanitizeCaption, sanitizePhotoUrl, assertSafeUpload, safeFileName, sanitizeText } from './validation.js'
 
 export { SECTIONS, sectionLabel, slotDefault }
 
@@ -62,7 +62,7 @@ export async function getPhotos(section) {
   try {
     const { data, error } = await supabase
       .from('photos')
-      .select('id, url, caption, position')
+      .select('id, url, caption, description, position')
       .eq('section', section)
       .is('key', null) // les emplacements fixes sont gérés séparément
       .order('position', { ascending: true })
@@ -83,7 +83,7 @@ export async function getManagedPhotos(section) {
   try {
     const { data, error } = await supabase
       .from('photos')
-      .select('id, url, caption, position')
+      .select('id, url, caption, description, position')
       .eq('section', section)
       .is('key', null) // les emplacements fixes sont gérés séparément
       .order('position', { ascending: true })
@@ -131,6 +131,9 @@ export async function updatePhoto(id, patch = {}) {
     guardCaption(patch.caption)
     allowed.caption = patch.caption
   }
+  if ('description' in patch) {
+    allowed.description = sanitizeText(patch.description, 500)
+  }
   if ('position' in patch) {
     if (!Number.isInteger(patch.position) || patch.position < 0 || patch.position > 100000) {
       reject('position invalide')
@@ -144,7 +147,7 @@ export async function updatePhoto(id, patch = {}) {
     .from('photos')
     .update(allowed)
     .eq('id', id)
-    .select('id, url, caption, position')
+    .select('id, url, caption, description, position')
     .single()
   if (error) throw error
   return data

@@ -921,7 +921,22 @@ select:focus-visible,
   font-size: 0.95rem;
 }
 
-/* ---------- Partenaires / Histoires (cartes éditables) ---------- */
+/* ---------- Description partenaires (dans la galerie photos) ---------- */
+
+.admin__photo-caption--desc {
+  align-items: flex-start;
+  border-top: 1px dashed var(--sand-300);
+  margin-top: 4px;
+  padding-top: 12px;
+}
+
+.admin__description-input {
+  resize: vertical;
+  min-height: 54px;
+  font-size: 0.88rem;
+}
+
+/* ---------- Histoires (cartes éditables) ---------- */
 
 .admin__partner-form {
   display: flex;

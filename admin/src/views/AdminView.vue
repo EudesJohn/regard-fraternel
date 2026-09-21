@@ -26,7 +26,6 @@ import {
   getStoriesConfig,
   saveStoriesConfig
 } from '../../../src/lib/stories.js'
-import { getPartners, addPartner, updatePartner, deletePartner, movePartner } from '../../../src/lib/partners.js'
 import { getDonConfig, saveDonConfig } from '../../../src/lib/don.js'
 import Icon from '../../../src/components/Icon.vue'
 import { fakeDelay, LIMITS } from '../../../src/lib/validation.js'
@@ -102,7 +101,6 @@ const sectionObj = computed(() => SECTIONS.find((s) => s.slug === activeSection.
 const sectionLabel = computed(() => sectionObj.value?.name || activeSection.value)
 
 /* Panneaux spécifiques selon l'onglet actif */
-const showPartnersAdmin = computed(() => activeSection.value === 'partenaires')
 const showStoriesAdmin = computed(() => activeSection.value === 'histoires')
 const showDonAdmin = computed(() => activeSection.value === 'don')
 
@@ -126,7 +124,6 @@ onMounted(async () => {
       loadSlots()
       loadStories()
       loadStoriesCfg()
-      loadPartners()
       loadDon()
     }
   })
@@ -636,77 +633,16 @@ const reorderStory = async (s, dir) => {
 }
 
 /* ============================================================
- * PARTENAIRES (table partners)
+ * DESCRIPTION des partenaires (photos de la galerie « partenaires »)
+ * Légende = nom du partenaire ; description = texte affiché dessous.
  * ============================================================ */
-const partners = ref([])
-const partnerForm = ref({ name: '', description: '', email: '', phone: '' })
-const addingPartner = ref(false)
-const editingPartnerId = ref(null)
-const partnerEdit = ref({ name: '', description: '', email: '', phone: '' })
-
-const loadPartners = async () => {
-  if (!session.value) return
-  partners.value = await getPartners()
-}
-
-const resetPartnerForm = () => {
-  partnerForm.value = { name: '', description: '', email: '', phone: '' }
-}
-
-const submitPartner = async () => {
-  busy.value = true
-  addingPartner.value = true
-  try {
-    await addPartner(partnerForm.value)
-    flash('Partenaire ajouté.')
-    resetPartnerForm()
-    await loadPartners()
-  } catch (err) {
-    flash(withHint(err), 'error')
-  } finally {
-    busy.value = false
-    addingPartner.value = false
-  }
-}
-
-const startEditPartner = (p) => {
-  editingPartnerId.value = p.id
-  partnerEdit.value = { name: p.name, description: p.description, email: p.email, phone: p.phone }
-}
-
-const savePartnerEdit = async (p) => {
+const saveDescription = async (photo) => {
+  if (busy.value) return
   busy.value = true
   try {
-    const updated = await updatePartner(p.id, partnerEdit.value)
-    Object.assign(p, updated)
-    editingPartnerId.value = null
-    flash('Partenaire mis à jour.')
-  } catch (err) {
-    flash(withHint(err), 'error')
-  } finally {
-    busy.value = false
-  }
-}
-
-const removePartner = async (p) => {
-  if (!window.confirm(`Supprimer le partenaire « ${p.name} » ?`)) return
-  busy.value = true
-  try {
-    await deletePartner(p.id)
-    flash('Partenaire supprimé.')
-    await loadPartners()
-  } catch (err) {
-    flash(withHint(err), 'error')
-  } finally {
-    busy.value = false
-  }
-}
-
-const reorderPartner = async (p, dir) => {
-  busy.value = true
-  try {
-    await movePartner(p, dir, partners.value)
-    await loadPartners()
+    const updated = await updatePhoto(photo.id, { description: photo.description })
+    photo.description = updated.description
+    flash('Description enregistrée.')
   } catch (err) {
     flash(withHint(err), 'error')
   } finally {
@@ -1020,103 +956,23 @@ VITE_SUPABASE_ANON_KEY=eyJ...</pre>
                 <button class="admin__edit-link" @click="startEdit(photo)">Modifier</button>
               </template>
             </div>
+
+            <!-- Description du partenaire (uniquement dans l'onglet Partenaires) :
+                 la légende sert de nom, la description est affichée dessous sur le site -->
+            <div v-if="activeSection === 'partenaires'" class="admin__photo-caption admin__photo-caption--desc">
+              <textarea
+                v-model="photo.description"
+                class="admin__caption-input admin__description-input"
+                rows="2"
+                :maxlength="LIMITS.description"
+                placeholder="Description du partenaire (affichée sous son nom)"
+              ></textarea>
+              <button class="btn btn--primary btn--sm" :disabled="busy" @click="saveDescription(photo)">OK</button>
+            </div>
           </article>
         </div>
 
         <p v-else class="admin__empty">Aucune photo dans cette galerie pour l'instant.</p>
-      </div>
-
-      <!-- ============================================================
-           PARTENAIRES — cartes éditables (table partners)
-           ============================================================ -->
-      <div v-if="showPartnersAdmin" class="admin__panel">
-        <h3 class="admin__subtitle">Cartes partenaires — {{ sectionLabel }}</h3>
-        <p class="admin__text">
-          Chaque carte affiche un nom, une description et des coordonnées (optionnels).
-          Les logos restent gérés via la galerie ci-dessus.
-        </p>
-
-        <!-- Ajout -->
-        <div class="admin__add">
-          <div class="admin__partner-form">
-            <div class="form-field">
-              <label>Nom du partenaire *</label>
-              <input v-model="partnerForm.name" type="text" :maxlength="80" placeholder="Ex. Croce Rossa Italiana" />
-            </div>
-            <div class="form-field">
-              <label>Description</label>
-              <textarea v-model="partnerForm.description" rows="3" :maxlength="500" placeholder="Description affichée sur la carte"></textarea>
-            </div>
-            <div class="admin__partner-row">
-              <div class="form-field">
-                <label>E-mail (optionnel)</label>
-                <input v-model="partnerForm.email" type="email" :maxlength="254" placeholder="contact@exemple.org" />
-              </div>
-              <div class="form-field">
-                <label>Téléphone (optionnel)</label>
-                <input v-model="partnerForm.phone" type="tel" :maxlength="20" placeholder="+39 ..." />
-              </div>
-            </div>
-            <button class="btn btn--primary" :disabled="busy || addingPartner || !partnerForm.name.trim()" @click="submitPartner">
-              <Icon name="check" :size="16" />
-              Ajouter le partenaire
-            </button>
-          </div>
-        </div>
-
-        <!-- Liste -->
-        <div v-if="partners.length" class="admin__partners">
-          <article v-for="(p, i) in partners" :key="p.id" class="admin__partner">
-            <div class="admin__partner-order">
-              <button class="admin__icon-btn" title="Monter" :disabled="busy || i === 0" @click="reorderPartner(p, -1)">
-                <Icon name="chevronLeft" :size="16" style="transform: rotate(90deg)" />
-              </button>
-              <button class="admin__icon-btn" title="Descendre" :disabled="busy || i === partners.length - 1" @click="reorderPartner(p, 1)">
-                <Icon name="chevronRight" :size="16" style="transform: rotate(90deg)" />
-              </button>
-            </div>
-
-            <div v-if="editingPartnerId !== p.id" class="admin__partner-body">
-              <h4>{{ p.name }}</h4>
-              <p v-if="p.description" class="admin__partner-desc">{{ p.description }}</p>
-              <p class="admin__partner-meta">
-                <span v-if="p.email">✉ {{ p.email }}</span>
-                <span v-if="p.phone">☎ {{ p.phone }}</span>
-                <span v-if="!p.email && !p.phone">Aucune coordonnée</span>
-              </p>
-              <div class="admin__partner-actions">
-                <button class="btn btn--primary btn--sm" :disabled="busy" @click="startEditPartner(p)">Modifier</button>
-                <button class="btn btn--danger btn--sm" :disabled="busy" @click="removePartner(p)">Supprimer</button>
-              </div>
-            </div>
-
-            <div v-else class="admin__partner-body admin__partner-body--edit">
-              <div class="form-field">
-                <label>Nom *</label>
-                <input v-model="partnerEdit.name" type="text" :maxlength="80" />
-              </div>
-              <div class="form-field">
-                <label>Description</label>
-                <textarea v-model="partnerEdit.description" rows="3" :maxlength="500"></textarea>
-              </div>
-              <div class="admin__partner-row">
-                <div class="form-field">
-                  <label>E-mail</label>
-                  <input v-model="partnerEdit.email" type="email" :maxlength="254" />
-                </div>
-                <div class="form-field">
-                  <label>Téléphone</label>
-                  <input v-model="partnerEdit.phone" type="tel" :maxlength="20" />
-                </div>
-              </div>
-              <div class="admin__partner-actions">
-                <button class="btn btn--primary btn--sm" :disabled="busy" @click="savePartnerEdit(p)">Enregistrer</button>
-                <button class="btn btn--sm" :disabled="busy" @click="editingPartnerId = null">Annuler</button>
-              </div>
-            </div>
-          </article>
-        </div>
-        <p v-else class="admin__empty">Aucun partenaire enregistré — ajoutez le premier ci-dessus.</p>
       </div>
 
       <!-- ============================================================

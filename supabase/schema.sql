@@ -46,6 +46,19 @@ begin
   end if;
 end $$;
 
+-- MIGRATION description : texte affiché sous le nom d'un partenaire
+-- (les photos de la section « partenaires » utilisent la légende comme nom).
+do $$
+begin
+  if not exists (select 1 from information_schema.columns
+                 where table_schema = 'public' and table_name = 'photos' and column_name = 'description') then
+    execute 'alter table public.photos add column description text not null default ''''';
+    raise notice 'Colonne description ajoutée à photos.';
+  else
+    raise notice 'Colonne description déjà présente.';
+  end if;
+end $$;
+
 -- ---------- Sécurité (RLS) ----------
 -- Lecture : tout le monde peut voir les photos du site public.
 -- Écriture : réservée au SEUL compte administrateur (défense en profondeur :
@@ -260,37 +273,6 @@ create policy "don_config_insert_admin" on public.don_config
 
 drop policy if exists "don_config_delete_admin" on public.don_config;
 create policy "don_config_delete_admin" on public.don_config
-  for delete to authenticated using (public.is_admin());
-
--- ============================================================
--- PARTENAIRES (cartes éditables dans l'admin — pages /partenaires et /contact)
--- ============================================================
-create table if not exists public.partners (
-  id uuid primary key default gen_random_uuid(),
-  name text not null,
-  description text not null default '',
-  email text not null default '',
-  phone text not null default '',
-  position integer not null default 0,
-  created_at timestamptz not null default now()
-);
-
-alter table public.partners enable row level security;
-
-drop policy if exists "partners_select_public" on public.partners;
-create policy "partners_select_public" on public.partners
-  for select using (true);
-
-drop policy if exists "partners_insert_admin" on public.partners;
-create policy "partners_insert_admin" on public.partners
-  for insert to authenticated with check (public.is_admin());
-
-drop policy if exists "partners_update_admin" on public.partners;
-create policy "partners_update_admin" on public.partners
-  for update to authenticated using (public.is_admin()) with check (public.is_admin());
-
-drop policy if exists "partners_delete_admin" on public.partners;
-create policy "partners_delete_admin" on public.partners
   for delete to authenticated using (public.is_admin());
 
 -- ============================================================

@@ -1,6 +1,5 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { getPartners } from '../lib/partners.js'
 import { getPhotos, photoUrl } from '../lib/photos.js'
 import { useSectionSlots } from '../lib/useSectionSlots.js'
 import PageHeader from '../components/PageHeader.vue'
@@ -9,14 +8,13 @@ import Icon from '../components/Icon.vue'
 // Emplacements fixes : bannière, logo partenaire, fond CTA (remplaçables depuis l'application d'administration)
 const { url: slotUrl } = useSectionSlots('partenaires')
 
-/* Galerie des partenaires (gérée depuis l'application d'administration, section « partenaires ») */
+/* Galerie des partenaires (gérée depuis l'application d'administration, section « partenaires ») :
+   légende = nom du partenaire, description = texte affiché dessous */
 const photos = ref([])
-const partenaires = ref([])
 const loading = ref(true)
 
 onMounted(async () => {
   photos.value = await getPhotos('partenaires')
-  partenaires.value = await getPartners()
   loading.value = false
 })
 </script>
@@ -41,7 +39,8 @@ onMounted(async () => {
         </p>
 
         <div class="partenaires__grid">
-          <!-- Photos ajoutées par l'admin (section partenaires) -->
+          <!-- Photos ajoutées par l'admin (section partenaires) :
+               légende = nom du partenaire, description = texte affiché dessous -->
           <article
             v-for="(photo, i) in photos"
             :key="photo.id || photo.url"
@@ -50,31 +49,10 @@ onMounted(async () => {
             :style="{ '--reveal-delay': i * 100 + 'ms' }"
           >
             <img class="partenaire-card__logo-img" :src="photoUrl(photo.url, 480)" :alt="photo.caption || 'Partenaire'" loading="lazy" />
-            <div v-if="photo.caption">
-              <h3>{{ photo.caption }}</h3>
+            <div v-if="photo.caption || photo.description">
+              <h3 v-if="photo.caption">{{ photo.caption }}</h3>
+              <p v-if="photo.description">{{ photo.description }}</p>
             </div>
-          </article>
-
-          <article
-            v-for="(p, i) in partenaires"
-            :key="p.id"
-            class="partenaire-card reveal"
-            v-reveal
-            :style="{ '--reveal-delay': (photos.length + i) * 100 + 'ms' }"
-          >
-            <div class="partenaire-card__icon"><Icon name="handshake" :size="26" /></div>
-            <h3>{{ p.name }}</h3>
-            <p>{{ p.description }}</p>
-            <ul v-if="p.email || p.phone" class="partenaire-card__contact">
-              <li v-if="p.email">
-                <Icon name="mail" :size="16" />
-                <a :href="`mailto:${p.email}`">{{ p.email }}</a>
-              </li>
-              <li v-if="p.phone">
-                <Icon name="phone" :size="16" />
-                <a :href="`tel:${p.phone.replace(/\s/g, '')}`">{{ p.phone }}</a>
-              </li>
-            </ul>
           </article>
         </div>
       </div>

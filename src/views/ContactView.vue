@@ -1,7 +1,6 @@
 <script setup>
 import { reactive, ref, onMounted } from 'vue'
 import { site } from '../data.js'
-import { getPartners } from '../lib/partners.js'
 import { getPhotos, photoUrl } from '../lib/photos.js'
 import { useSectionSlots } from '../lib/useSectionSlots.js'
 import PageHeader from '../components/PageHeader.vue'
@@ -95,12 +94,10 @@ const submit = async () => {
   }
 }
 
-/* Photos et cartes partenaires gérées depuis l'admin */
+/* Photos partenaires gérées depuis l'admin (légende = nom, description affichée dessous) */
 const photos = ref([])
-const partenaires = ref([])
 onMounted(async () => {
   photos.value = await getPhotos('partenaires')
-  partenaires.value = await getPartners()
 })
 
 const contactItems = [
@@ -196,7 +193,7 @@ const contactItems = [
         <p class="eyebrow reveal" v-reveal>Nos partenaires</p>
         <h2 class="section-title reveal" v-reveal>Ils nous <em>soutiennent</em></h2>
         <div class="partenaires__grid">
-          <!-- Photos ajoutées par l'admin -->
+          <!-- Photos ajoutées par l'admin : légende = nom, description affichée dessous -->
           <article
             v-for="(photo, i) in photos"
             :key="photo.id || photo.url"
@@ -205,26 +202,12 @@ const contactItems = [
             :style="{ '--reveal-delay': i * 100 + 'ms' }"
           >
             <img class="partenaire-card__logo-img" :src="photoUrl(photo.url, 480)" :alt="photo.caption || 'Partenaire'" loading="lazy" />
-            <div v-if="photo.caption">
-              <h3>{{ photo.caption }}</h3>
+            <div v-if="photo.caption || photo.description">
+              <h3 v-if="photo.caption">{{ photo.caption }}</h3>
+              <p v-if="photo.description">{{ photo.description }}</p>
             </div>
           </article>
 
-          <article v-for="p in partenaires" :key="p.id" class="partenaire-card reveal" v-reveal>
-            <div class="partenaire-card__icon"><Icon name="handshake" :size="26" /></div>
-            <h3>{{ p.name }}</h3>
-            <p>{{ p.description }}</p>
-            <ul v-if="p.email || p.phone" class="partenaire-card__contact">
-              <li v-if="p.email">
-                <Icon name="mail" :size="16" />
-                <a :href="`mailto:${p.email}`">{{ p.email }}</a>
-              </li>
-              <li v-if="p.phone">
-                <Icon name="phone" :size="16" />
-                <a :href="`tel:${p.phone.replace(/\s/g, '')}`">{{ p.phone }}</a>
-              </li>
-            </ul>
-          </article>
         </div>
       </div>
     </section>

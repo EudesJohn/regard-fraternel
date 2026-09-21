@@ -61,13 +61,11 @@ describe('modules — import sans erreur d évaluation', () => {
     assert.equal(typeof v.sanitizeName, 'function')
   })
 
-  test('stories.js, partners.js et don.js évaluent sans erreur', async () => {
+  test('stories.js et don.js évaluent sans erreur', async () => {
     const s = await import('../src/lib/stories.js')
-    const p = await import('../src/lib/partners.js')
     const d = await import('../src/lib/don.js')
     assert.equal(typeof s.getStories, 'function')
     assert.equal(typeof s.getStoriesConfig, 'function')
-    assert.equal(typeof p.getPartners, 'function')
     assert.equal(typeof d.getDonConfig, 'function')
   })
 })
