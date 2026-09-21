@@ -20,7 +20,6 @@ const cover = computed(() =>
 )
 
 const heroSlides = ref([...defaultSlides])
-const partenairePhotos = ref([])
 const slide = ref(0)
 let timer
 
@@ -52,9 +51,6 @@ onMounted(async () => {
     heroSlides.value.slice(1).forEach((s) => preloadImage(photoUrl(s.image, 1200)))
     heroLoaded.value = true
   }
-
-  // Galerie des partenaires (section « partenaires »)
-  partenairePhotos.value = await getPhotos('partenaires')
 
   timer = setInterval(nextSlide, 6500)
 })
@@ -243,30 +239,6 @@ const stats = [
               </span>
             </div>
           </RouterLink>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============ PARTENAIRES (galerie photos) ============ -->
-    <section v-if="partenairePhotos.length" class="section section--alt">
-      <div class="container">
-        <p class="eyebrow reveal" v-reveal>Nos partenaires</p>
-        <h2 class="section-title reveal" v-reveal>Ils nous <em>soutiennent</em></h2>
-        <p class="section-intro reveal" v-reveal>
-          Nos partenaires italiens soutiennent les actions éducatives et solidaires de
-          l'ONG au Bénin.
-        </p>
-
-        <div class="gallery">
-          <figure
-            v-for="(photo, i) in partenairePhotos"
-            :key="photo.id || photo.url"
-            class="gallery__item"
-            :class="{ 'gallery__item--tall': i % 5 === 2 }"
-          >
-            <img :src="photoUrl(photo.url, 480)" :alt="photo.caption || 'Nos partenaires'" loading="lazy" />
-            <figcaption v-if="photo.caption" class="gallery__caption">{{ photo.caption }}</figcaption>
-          </figure>
         </div>
       </div>
     </section>
