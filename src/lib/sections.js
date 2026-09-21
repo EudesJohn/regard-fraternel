@@ -41,14 +41,6 @@ export const SECTIONS = [
     ]
   },
   {
-    slug: 'gouvernance',
-    name: 'Gouvernance',
-    path: '/gouvernance',
-    slots: [
-      { key: 'header', label: 'Bannière de page', default: '/images/photos/don/don-04.jpg' }
-    ]
-  },
-  {
     slug: 'histoires',
     name: 'Nos histoires',
     path: '/histoires',

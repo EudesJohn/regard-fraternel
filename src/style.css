@@ -108,9 +108,7 @@ select:focus-visible,
 .program-tab,
 .legal-card,
 .obj-card:hover,
-.gov-card,
 .value-card,
-.bureau-card,
 a,
 button {
   cursor: pointer;
@@ -1019,216 +1017,6 @@ ul {
   color: rgba(255, 255, 255, 0.7);
   font-size: 0.9rem;
   letter-spacing: 0.1em;
-}
-
-/* ---------- Gouvernance ---------- */
-
-.gov__grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 24px;
-}
-
-.gov-card {
-  padding: 36px 28px;
-  background: var(--white);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
-  transition: transform 0.35s ease, box-shadow 0.35s ease;
-}
-
-.gov-card:hover {
-  transform: translateY(-6px);
-  box-shadow: var(--shadow-md);
-}
-
-.gov-card__icon {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  background: var(--forest-50);
-  color: var(--forest-600);
-  font-size: 1.4rem;
-  margin-bottom: 22px;
-}
-
-.gov-card h3 {
-  font-family: var(--font-display);
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: var(--forest-900);
-  margin-bottom: 12px;
-}
-
-.gov-card p {
-  font-size: 0.9rem;
-  color: var(--ink-soft);
-}
-
-.bureau {
-  margin-top: 80px;
-}
-
-.bureau__grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-}
-
-.bureau-card {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  padding: 26px;
-  background: var(--white);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
-  transition: transform 0.35s ease, box-shadow 0.35s ease;
-}
-
-.bureau-card:hover {
-  transform: translateY(-5px);
-  box-shadow: var(--shadow-md);
-}
-
-.bureau-card__avatar {
-  width: 62px;
-  height: 62px;
-  flex: none;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--forest-600), var(--forest-800));
-  color: var(--white);
-  display: grid;
-  place-items: center;
-  font-family: var(--font-display);
-  font-size: 1.3rem;
-  font-weight: 600;
-}
-
-.bureau-card h4 {
-  font-size: 1.02rem;
-  font-weight: 600;
-  color: var(--forest-900);
-  margin-bottom: 4px;
-}
-
-.bureau-card span {
-  font-size: 0.86rem;
-  color: var(--terracotta-600);
-  font-weight: 600;
-}
-
-/* ---------- Cartes membres (BE & CC) ---------- */
-
-.membres__grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 26px;
-}
-
-.membres__grid--2 {
-  grid-template-columns: repeat(2, 1fr);
-  max-width: 860px;
-  margin-inline: auto;
-}
-
-.membre-card {
-  background: var(--white);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
-  padding: 32px;
-  border-top: 4px solid var(--terracotta-500);
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  transition: transform 0.35s ease, box-shadow 0.35s ease;
-}
-
-.membre-card:hover {
-  transform: translateY(-6px);
-  box-shadow: var(--shadow-md);
-}
-
-.membre-card__head {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-}
-
-.membre-card__avatar {
-  width: 64px;
-  height: 64px;
-  flex: none;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--terracotta-500), var(--terracotta-600));
-  color: var(--white);
-  display: grid;
-  place-items: center;
-  font-family: var(--font-display);
-  font-size: 1.35rem;
-  font-weight: 600;
-  box-shadow: 0 10px 24px rgba(201, 107, 61, 0.35);
-}
-
-.membre-card__poste {
-  display: block;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--terracotta-600);
-  margin-bottom: 4px;
-}
-
-.membre-card h3 {
-  font-family: var(--font-display);
-  font-size: 1.18rem;
-  font-weight: 600;
-  color: var(--forest-900);
-  line-height: 1.25;
-}
-
-.membre-card__infos {
-  list-style: none;
-  display: grid;
-  gap: 12px;
-}
-
-.membre-card__infos li {
-  display: grid;
-  grid-template-columns: 110px 1fr;
-  gap: 12px;
-  align-items: baseline;
-  font-size: 0.92rem;
-  color: var(--ink);
-  padding-bottom: 10px;
-  border-bottom: 1px dashed var(--sand-300);
-}
-
-.membre-card__infos li:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
-}
-
-.membre-card__infos li span {
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--ink-soft);
-}
-
-.membre-card__infos a {
-  color: var(--forest-600);
-  font-weight: 600;
-  word-break: break-word;
-  transition: color 0.25s ease;
-}
-
-.membre-card__infos a:hover {
-  color: var(--terracotta-600);
 }
 
 /* ---------- Textes juridiques ---------- */
@@ -2293,16 +2081,7 @@ ul {
     gap: 40px;
   }
 
-  .values__grid,
-  .gov__grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .bureau__grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .membres__grid {
+  .values__grid {
     grid-template-columns: repeat(2, 1fr);
   }
 
@@ -2364,10 +2143,6 @@ ul {
   }
 
   .values__grid,
-  .gov__grid,
-  .bureau__grid,
-  .membres__grid,
-  .membres__grid--2,
   .partenaires__grid,
   .gallery {
     grid-template-columns: 1fr;

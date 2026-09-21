@@ -1,6 +1,6 @@
 // Vérification « aucune image cassée » sur toutes les pages via Chrome DevTools Protocol.
 // Usage : node scripts/check-images.mjs  (Chrome doit tourner avec --remote-debugging-port=9222)
-const routes = ['', 'apropos', 'actions', 'actions/sanitaire', 'actions/scolaire', 'actions/jeux', 'actions/don', 'gouvernance', 'histoires', 'don', 'adhesion', 'partenaires', 'contact']
+const routes = ['', 'apropos', 'actions', 'actions/sanitaire', 'actions/scolaire', 'actions/jeux', 'actions/don', 'histoires', 'don', 'adhesion', 'partenaires', 'contact']
 const BASE = 'http://localhost:4173/'
 
 async function main() {

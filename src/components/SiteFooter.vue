@@ -7,7 +7,6 @@ const links = [
   { label: 'À propos', to: '/apropos' },
   { label: 'Nos actions', to: '/actions' },
   { label: 'Nos histoires', to: '/histoires' },
-  { label: 'Gouvernance', to: '/gouvernance' },
   { label: 'Adhésion', to: '/adhesion' },
   { label: 'Faire un don', to: '/don' },
   { label: 'Partenaires', to: '/partenaires' },
