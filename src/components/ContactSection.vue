@@ -2,14 +2,21 @@
 import { reactive, ref } from 'vue'
 import { site } from '../data.js'
 import Icon from './Icon.vue'
+import {
+  sanitizeName,
+  sanitizeEmail,
+  sanitizePhone,
+  sanitizeMultiline,
+  honeypotTripped,
+  fakeDelay,
+  LIMITS
+} from '../lib/validation.js'
+import { sendContactMessage, sendViaFormSubmit } from '../lib/contact.js'
 
-const form = reactive({ nom: '', email: '', telephone: '', message: '' })
+// `website` = champ honeypot : invisible à l'écran, rempli uniquement par les bots.
+const form = reactive({ nom: '', email: '', telephone: '', message: '', website: '' })
 const status = ref('') // '' | 'sending' | 'sent' | 'error'
 const errorMsg = ref('')
-
-// Envoi direct à FormSubmit (gratuit, illimité, sans clé API) : l'e-mail
-// arrive à l'ONG bien structuré en tableau (_template: table).
-const FORM_ENDPOINT = 'https://formsubmit.co/ajax/ongregardfraternel13@gmail.com'
 
 const contactItems = [
   { icon: 'mapPin', label: 'Siège social', titre: site.siege, texte: site.bp },
@@ -22,33 +29,65 @@ const submit = async () => {
   if (status.value === 'sending') return
   status.value = 'sending'
   errorMsg.value = ''
-  try {
-    const res = await fetch(FORM_ENDPOINT, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify({
-        'Nom complet': form.nom,
-        'E-mail': form.email,
-        'Téléphone': form.telephone || 'Non renseigné',
-        'Message': form.message,
-        _template: 'table',
-        _subject: `Nouveau message du site REGARD FRATERNEL — ${form.nom}`,
-        _captcha: 'false'
-      })
-    })
-    const data = await res.json().catch(() => ({}))
-    if (!res.ok || data.success !== 'true') {
-      throw new Error(data.message || "L'envoi a échoué, réessayez plus tard.")
+
+  // 1. Honeypot : rejet SILENCIEUX des bots (fausse réussite, pour ne pas les éduquer).
+  if (honeypotTripped(form, 'website')) {
+    status.value = 'sent'
+    setTimeout(() => (status.value = ''), 8000)
+    return
+  }
+
+  // 2. Validation stricte avant envoi (miroir local de la validation attendue).
+  const nom = sanitizeName(form.nom)
+  const email = sanitizeEmail(form.email)
+  const tel = sanitizePhone(form.telephone) // '' si absent, null si invalide
+  const message = sanitizeMultiline(form.message, LIMITS.message)
+  if (!nom || !email || tel === null || message.length < 10) {
+    status.value = 'error'
+    errorMsg.value =
+      'Vérifiez vos champs : nom (lettres), e-mail valide, téléphone valide (si renseigné) et message de 10 caractères minimum.'
+    setTimeout(() => (status.value = ''), 8000)
+    return
+  }
+
+  // 3. Débit artificiel : décourage l'envoi automatisé en rafale.
+  await fakeDelay(600)
+
+  // 4. Envoi : Edge Function Supabase (validation serveur + rate limiting),
+  //    avec repli FormSubmit si la fonction n'est pas encore déployée.
+  const payload = { name: nom, email, phone: tel || '', message }
+  const result = await sendContactMessage(payload)
+
+  if (result === 'fallback-needed') {
+    const ok = (await sendViaFormSubmit(payload)) === 'sent'
+    if (ok) {
+      status.value = 'sent'
+      form.nom = ''
+      form.email = ''
+      form.telephone = ''
+      form.message = ''
+      form.website = ''
+      setTimeout(() => (status.value = ''), 8000)
+      return
     }
+    status.value = 'error'
+    errorMsg.value = "L'envoi a échoué, réessayez plus tard."
+    setTimeout(() => (status.value = ''), 8000)
+    return
+  }
+
+  if (result === 'sent') {
     status.value = 'sent'
     form.nom = ''
     form.email = ''
     form.telephone = ''
     form.message = ''
+    form.website = ''
     setTimeout(() => (status.value = ''), 8000)
-  } catch (e) {
+  } else {
+    // 'sent-error' : message générique — aucune erreur technique exposée.
     status.value = 'error'
-    errorMsg.value = e.message
+    errorMsg.value = "L'envoi a échoué, réessayez plus tard."
     setTimeout(() => (status.value = ''), 8000)
   }
 }
@@ -95,25 +134,30 @@ const submit = async () => {
         </div>
 
         <form class="contact__form reveal" v-reveal style="--reveal-delay: 120ms" @submit.prevent="submit">
+          <!-- Honeypot anti-bots : champ réel pour les parseurs HTML, invisible et hors tabulation -->
+          <div class="hp-field" aria-hidden="true">
+            <label for="website">Ne pas remplir ce champ</label>
+            <input id="website" v-model="form.website" type="text" name="website" tabindex="-1" autocomplete="off" />
+          </div>
           <h3 style="font-family: var(--font-display); font-size: 1.5rem; color: var(--forest-900); margin-bottom: 26px">
             Envoyez-nous un message
           </h3>
           <div class="form-grid">
             <div class="form-field">
               <label for="nom">Nom complet</label>
-              <input id="nom" v-model="form.nom" type="text" required placeholder="Votre nom" />
+              <input id="nom" v-model="form.nom" type="text" required maxlength="80" placeholder="Votre nom" />
             </div>
             <div class="form-field">
               <label for="email">E-mail</label>
-              <input id="email" v-model="form.email" type="email" required placeholder="vous@exemple.com" />
+              <input id="email" v-model="form.email" type="email" required maxlength="254" placeholder="vous@exemple.com" />
             </div>
             <div class="form-field form-field--full">
               <label for="telephone">Téléphone (optionnel)</label>
-              <input id="telephone" v-model="form.telephone" type="tel" placeholder="+229 ..." />
+              <input id="telephone" v-model="form.telephone" type="tel" maxlength="20" placeholder="+229 ..." />
             </div>
             <div class="form-field form-field--full">
               <label for="message">Votre message</label>
-              <textarea id="message" v-model="form.message" required placeholder="Écrivez votre message ici..."></textarea>
+              <textarea id="message" v-model="form.message" required maxlength="2000" placeholder="Écrivez votre message ici..."></textarea>
             </div>
           </div>
           <button type="submit" class="btn btn--primary" style="margin-top: 24px; width: 100%; justify-content: center" :disabled="status === 'sending'">

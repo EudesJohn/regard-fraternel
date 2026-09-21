@@ -1513,6 +1513,15 @@ ul {
   min-height: 130px;
 }
 
+/* Honeypot anti-bots : champ présent dans le DOM mais invisible et non focusable */
+.hp-field {
+  position: absolute !important;
+  left: -9999px !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
 .form-success {
   margin-top: 18px;
   padding: 14px 18px;

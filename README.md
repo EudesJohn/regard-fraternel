@@ -40,6 +40,11 @@ public (`#/admin` a disparu) : son code n'est servi qu'après authentification.
    est bloquée (HTTP 429) — la connexion réussie réinitialise le compteur.
    Compteur **partagé** si Upstash est configuré (`UPSTASH_REDIS_REST_URL` +
    `UPSTASH_REDIS_REST_TOKEN`), sinon repli en mémoire par instance.
+   Double verrou côté navigateur : 5 tentatives → blocage 5 minutes dans
+   l'interface admin, et délai uniforme de 400 ms côté serveur (anti-timing).
+   La soumission du formulaire de la porte est également refusée (403) si elle
+   ne provient pas du site même (vérification `Origin`/`Referer`, anti-CSRF).
+   Comparaison des identifiants en **temps constant** (`timingSafeEqual`).
 3. **Connexion Supabase** (e-mail + mot de passe du compte administrateur) pour
    accéder à l'interface de gestion.
 4. **RLS Supabase** : les écritures (table `photos` + bucket `photos`) sont
@@ -95,7 +100,82 @@ npm run dev            # site public — http://localhost:5173
 npm run dev:admin      # admin — http://localhost:5174
 
 npm run build:all      # build des deux applications + fusion → dist/
+npm test               # tests de sécurité (validation.js + porte /admin)
 ```
+
+## Tests automatisés
+
+56 tests (runner natif Node, zéro dépendance) couvrant :
+
+- **`tests/validation.test.mjs`** — validateurs et assainisseurs (noms,
+  e-mails, téléphones, URLs photo, légendes, noms de fichiers, uploads avec
+  magic numbers, honeypot) ;
+- **`tests/gate.test.mjs`** — porte d'accès `/admin` (fail-closed, cookie,
+  sha256, CSRF par Origin/Referer, rate limiting par IP, journalisation
+  nettoyée, messages génériques sans fuite technique).
+
+```bash
+npm test
+```
+
+## Passer le mot de passe de la porte en sha256
+
+Par défaut, `ADMIN_GATE_PASSWORD` contient la phrase secrète **en clair** dans
+les variables d'environnement Vercel. Pour n'y stocker que l'empreinte :
+
+1. Générez la valeur :
+
+   ```bash
+   node scripts/hash-gate-password.mjs
+   # (saisie masquée) → ADMIN_GATE_PASSWORD=sha256:<empreinte>
+   ```
+
+2. Dans Vercel : **Settings → Environment Variables** → remplacez la valeur de
+   `ADMIN_GATE_PASSWORD` par `sha256:<empreinte>` → **Redeploy**.
+
+3. Connectez-vous normalement sur `/admin/` avec **la phrase secrète en clair**
+   (l'empreinte n'est jamais saisie dans le navigateur).
+
+Le middleware détecte le préfixe `sha256:` et compare l'empreinte de la saisie
+en temps constant. Le cookie de session vaut alors l'empreinte elle-même (un
+derivé non réversible), jamais le secret.
+
+## Formulaire de contact — Edge Function Supabase
+
+Le formulaire envoie d'abord vers l'**Edge Function** `contact` (validation
+serveur, honeypot, rate limiting 5 msgs/h/IP, stockage en base, e-mail
+optionnel via Resend). Si la fonction n'est pas encore déployée, repli
+automatique sur FormSubmit (comportement historique) — aucun message perdu.
+
+### Déploiement
+
+1. Exécutez le `supabase/schema.sql` mis à jour (crée `contact_messages`,
+   `contact_rate_limit` et la fonction de rate limiting).
+2. `npm install -g supabase` puis :
+
+   ```bash
+   supabase login
+   supabase functions deploy contact --project-ref <votre-ref>
+   ```
+
+3. (Optionnel) Pour recevoir un e-mail à chaque message — créez une clé sur
+   [resend.com](https://resend.com) puis :
+
+   ```bash
+   supabase secrets set RESEND_API_KEY=re_xxx CONTACT_TO_EMAIL=ongregardfraternel13@gmail.com
+   ```
+
+   Sans Resend, les messages restent consultables en base :
+   `select * from contact_messages order by created_at desc;`
+
+### Sécurité
+
+- Validation **côté serveur** (miroir exact de `src/lib/validation.js`) ;
+- Honeypot re-vérifié côté fonction ;
+- Rate limiting **par IP hashée** (SHA-256, RGPD) dans PostgreSQL, fail-closed ;
+- RLS : `contact_messages` inaccessible depuis les clés anon/authenticated
+  (lecture réservée au SQL editor / service_role) ;
+- Erreurs génériques au client, détails techniques en logs structurés.
 
 ## Sections du site
 
@@ -119,7 +199,7 @@ Dans le projet Vercel existant : **Settings → Environment Variables**, ajouter
 
 | Variable | Requis | Rôle |
 | --- | --- | --- |
-| `ADMIN_GATE_PASSWORD` | ✅ | Mot de passe d'accès à `/admin/` (phrase longue et difficile à deviner) |
+| `ADMIN_GATE_PASSWORD` | ✅ | Mot de passe d'accès à `/admin/` (phrase longue et difficile à deviner). **Recommandé** : format `sha256:<empreinte>` — voir « Passer le mot de passe en sha256 » plus bas. |
 | `ADMIN_GATE_EMAIL` | recommandé | E-mail administrateur exigé à la connexion (sinon mot de passe seul) |
 | `ADMIN_GATE_MAX_ATTEMPTS` | non | Échecs tolérés avant blocage (défaut : 10) |
 | `ADMIN_GATE_WINDOW_SECONDS` | non | Fenêtre de blocage (défaut : 600 s) |
@@ -174,8 +254,14 @@ le bucket `photos`, les métadonnées (section, légende, position) dans la tabl
 - Les images de mise en page (hero, en-têtes de pages, couvertures, fonds de
   sections) sont dans `public/images/design/` — elles ne sont pas gérées par
   l'admin.
-- Le formulaire de contact est actuellement une maquette front (aucun backend) ;
-  il peut être branché sur un service d'e-mail ou une API.
+- Le formulaire de contact envoie via FormSubmit : il est protégé par un
+  **honeypot** (champ `website` invisible), une **validation stricte**
+  (`src/lib/validation.js` : nom, e-mail, téléphone, borne de 2 000 caractères)
+  et affiche des **erreurs génériques** (aucun détail technique exposé).
+- Les URLs de photos acceptées en base sont **limitées** au bucket Supabase du
+  projet et aux chemins locaux `/images/…` (`sanitizePhotoUrl`) ; les uploads
+  sont contrôlés par **type MIME + magic number + taille (10 Mo)** côté
+  navigateur ET côté bucket (`supabase/schema.sql`).
 - Test de bout en bout de l'admin :
   `ADMIN_GATE_PASSWORD=… node scripts/test-admin.mjs <EMAIL> <MOT_DE_PASSE>`
   (voir l'en-tête du script).

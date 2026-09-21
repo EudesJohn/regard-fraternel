@@ -12,7 +12,8 @@
     "preview": "vite preview",
     "dev:admin": "npm --prefix admin run dev",
     "build:admin": "npm --prefix admin run build",
-    "build:all": "npm run build && npm run build:admin && node scripts/merge-admin.mjs"
+    "build:all": "npm run build && npm run build:admin && node scripts/merge-admin.mjs",
+    "test": "node --test tests/validation.test.mjs tests/gate.test.mjs tests/modules.test.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.3",

@@ -72,7 +72,7 @@ const contact = [
                 <a :href="`mailto:${c.mail}`">{{ c.mail }}</a>
               </template>
               <template v-else-if="c.lien">
-                <a :href="c.lien" target="_blank" rel="noopener">{{ c.texte }}</a>
+                <a :href="c.lien" target="_blank" rel="ugc nofollow noopener noreferrer">{{ c.texte }}</a>
               </template>
               <template v-else>
                 <span>{{ c.texte }}</span>

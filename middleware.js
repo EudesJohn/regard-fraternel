@@ -24,9 +24,20 @@ const RATE_LIMIT_PREFIX = 'rf-gate:login'
 
 /* ================= Journalisation ================= */
 
+/** Neutralise les caractères de contrôle avant écriture dans les logs (anti log injection / forge de lignes JSON). */
+function cleanLogValue(v) {
+  return String(v ?? '')
+    // eslint-disable-next-line no-control-regex
+    .replace(/[\u0000-\u001f\u007f]/g, ' ')
+    .slice(0, 200)
+}
+
 function log(event, fields = {}) {
   try {
-    console.log(JSON.stringify({ ts: new Date().toISOString(), app: 'admin-gate', event, ...fields }))
+    // Toutes les valeurs sont nettoyées : un attaquant ne peut pas forger de
+    // lignes de log ni injecter de caractères de contrôle.
+    const safe = Object.fromEntries(Object.entries(fields).map(([k, v]) => [k, cleanLogValue(v)]))
+    console.log(JSON.stringify({ ts: new Date().toISOString(), app: 'admin-gate', event, ...safe }))
   } catch {
     /* ne jamais casser la porte à cause des logs */
   }
@@ -60,6 +71,35 @@ async function sha256(text) {
   return Array.from(new Uint8Array(digest))
     .map((b) => b.toString(16).padStart(2, '0'))
     .join('')
+}
+
+/**
+ * Jeton de cookie dérivé du secret (jamais le secret lui-même) :
+ *  - ADMIN_GATE_PASSWORD en clair : SHA-256 du secret ;
+ *  - format « sha256:<empreinte> » : l'empreinte elle-même (déjà un dérivé
+ *    non réversible) — le cookie vaut alors l'empreinte, pas SHA-256 de la
+ *    chaîne « sha256:… » entière.
+ */
+function cookieTokenFor(password) {
+  return password.startsWith('sha256:')
+    ? Promise.resolve(password.slice(7).trim().toLowerCase())
+    : sha256(password)
+}
+
+/**
+ * Comparaison en temps constant (anti timing attack) : XOR de toutes les
+ * différences, retour après CHAQUE octet — la durée ne dépend pas de l'endroit
+ * de la première divergence.
+ */
+function timingSafeEqual(a, b) {
+  const ba = new TextEncoder().encode(a)
+  const bb = new TextEncoder().encode(b)
+  let diff = ba.length ^ bb.length
+  const n = Math.max(ba.length, bb.length)
+  for (let i = 0; i < n; i++) {
+    diff |= (ba[i] || 0) ^ (bb[i] || 0)
+  }
+  return diff === 0
 }
 
 /** Parse le header Cookie (format simple, sans dépendance). */
@@ -361,44 +401,73 @@ export default async function middleware(request) {
 
   // Soumission du mot de passe sur /admin/login
   if (url.pathname === '/admin/login' && request.method === 'POST') {
+    /* --- Protection CSRF : la soumission doit venir du formulaire du site --- */
+    const origin = (request.headers.get('origin') || '').toLowerCase()
+    const referer = (request.headers.get('referer') || '').toLowerCase()
+    // Hôte attendu : header Host, sinon hôte de l'URL demandée (utile aussi
+    // pour les tests où la Request est construite sans header Host).
+    const host = (request.headers.get('host') || new URL(request.url).host || '').toLowerCase()
+    const sameHost = (value) => {
+      try {
+        return new URL(value).host === host
+      } catch {
+        return false
+      }
+    }
+    const originOk = (!origin || sameHost(origin)) && (!referer || sameHost(referer))
+    if (!originOk) {
+      log('csrf_blocked', { ip, country, origin: cleanLogValue(origin), path: url.pathname })
+      return new Response('Forbidden', { status: 403, headers: { 'content-type': 'text/plain', 'x-content-type-options': 'nosniff' } })
+    }
+
     const ttl = windowSeconds()
     const attempts = maxAttempts()
 
     // 1. Anti force brute : blocage immédiat si trop d'échecs récents (par IP)
     const count = await countFailure(ip, ttl)
     if (count > attempts) {
-      log('rate_limited', { ip, country, path: url.pathname, ua: clientUa(request) })
+      log('rate_limited', { ip, country, path: url.pathname, ua: cleanLogValue(clientUa(request)) })
       return new Response(gatePage('Trop de tentatives. Réessayez dans quelques minutes.', requireEmail), {
         status: 429,
         headers: { ...securityHeaders(), 'retry-after': String(ttl) }
       })
     }
 
-    // 2. Vérification e-mail + mot de passe
+    // 2. Vérification e-mail + mot de passe (comparaison en temps constant)
     const form = await request.formData()
     const enteredEmail = String(form.get('email') || '').trim().toLowerCase()
     const enteredPassword = String(form.get('password') || '')
 
-    const emailOk = !requireEmail || enteredEmail === gateEmail
-    const passwordOk = enteredPassword === password
+    // Débit artificiel uniforme : la durée de réponse ne révèle rien
+    // (anti énumération d'e-mails / anti timing attack).
+    const startedAt = Date.now()
+    const expectedToken = await cookieTokenFor(password)
+    const emailOk = !requireEmail || timingSafeEqual(enteredEmail, gateEmail)
+    const passwordOk =
+      // ADMIN_GATE_PASSWORD peut contenir « sha256:<empreinte> » : alors on
+      // compare l'empreinte de la saisie (jamais le secret en clair).
+      password.startsWith('sha256:')
+        ? timingSafeEqual(await sha256(enteredPassword), password.slice(7).trim().toLowerCase())
+        : timingSafeEqual(enteredPassword, password)
+    const elapsed = Date.now() - startedAt
+    if (elapsed < 400) await new Promise((r) => setTimeout(r, 400 - elapsed))
 
     if (emailOk && passwordOk) {
       await resetFailures(ip)
-      log('login_success', { ip, country, email: enteredEmail, ua: clientUa(request) })
-      const token = await sha256(password)
+      log('login_success', { ip, country, ua: cleanLogValue(clientUa(request)) })
       const secure = url.protocol === 'https:' ? '; Secure' : ''
       return new Response(null, {
         status: 302,
         headers: {
           location: '/admin/',
-          'set-cookie': `${COOKIE_NAME}=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${COOKIE_MAX_AGE}${secure}`
+          'set-cookie': `${COOKIE_NAME}=${expectedToken}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${COOKIE_MAX_AGE}`
         }
       })
     }
 
     log('login_failed', {
-      ip, country, path: url.pathname, email: enteredEmail,
-      reason: emailOk ? 'wrong_password' : 'wrong_email', ua: clientUa(request)
+      ip, country, path: url.pathname,
+      reason: emailOk ? 'wrong_password' : 'wrong_email', ua: cleanLogValue(clientUa(request))
     })
     return new Response(gatePage('E-mail ou mot de passe incorrect.', requireEmail), {
       status: 401,
@@ -406,10 +475,11 @@ export default async function middleware(request) {
     })
   }
 
-  // Vérification du cookie d'accès
+  // Vérification du cookie d'accès (comparaison en temps constant)
   const cookies = parseCookies(request.headers.get('cookie'))
-  const expected = await sha256(password)
-  if (cookies[COOKIE_NAME] === expected) {
+  const expected = await cookieTokenFor(password)
+  const presented = cookies[COOKIE_NAME] || ''
+  if (presented && timingSafeEqual(presented, expected)) {
     return undefined // continue : le fichier demandé est servi normalement
   }
 
@@ -417,13 +487,13 @@ export default async function middleware(request) {
   // 401 brut uniquement pour les fichiers (JS, CSS…) dont le code ne doit
   // jamais être délivré sans authentification.
   if (url.pathname.startsWith('/admin/assets/')) {
-    log('denied_asset', { ip, country, path: url.pathname })
+    log('denied_asset', { ip, country, path: cleanLogValue(url.pathname) })
     return new Response('Unauthorized', {
       status: 401,
       headers: { 'content-type': 'text/plain', 'x-content-type-options': 'nosniff' }
     })
   }
-  log('denied_page', { ip, country, path: url.pathname })
+  log('denied_page', { ip, country, path: cleanLogValue(url.pathname) })
   return new Response(gatePage('', requireEmail), { status: 401, headers: securityHeaders() })
 }
 

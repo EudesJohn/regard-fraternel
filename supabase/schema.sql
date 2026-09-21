@@ -54,10 +54,15 @@ alter table public.photos enable row level security;
 
 -- Vrai uniquement pour le compte administrateur. Adaptez l'e-mail s'il change
 -- (il doit rester identique à celui du trigger d'inscription ci-dessous).
+-- Durcissement : SECURITY DEFINER + search_path verrouillé — sans cela, un
+-- utilisateur malveillant (ou un schéma trompeur) pourrait détourner la
+-- résolution des fonctions appelées à l'intérieur.
 create or replace function public.is_admin()
 returns boolean
 language sql
 stable
+security definer
+set search_path = ''
 as $$
   select auth.jwt() ->> 'email' = 'ongregardfraternel13@gmail.com'
 $$;
@@ -79,9 +84,13 @@ create policy "photos_delete_auth" on public.photos
   for delete to authenticated using (public.is_admin());
 
 -- ---------- Bucket de stockage (images uploadées) ----------
-insert into storage.buckets (id, name, public)
-values ('photos', 'photos', true)
-on conflict (id) do nothing;
+-- Limites serveur : 10 Mo max, images uniquement (doublent la validation
+-- côté navigateur de src/lib/validation.js — défense en profondeur).
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('photos', 'photos', true, 10485760, array['image/jpeg', 'image/png', 'image/webp'])
+on conflict (id) do update
+  set file_size_limit = excluded.file_size_limit,
+      allowed_mime_types = excluded.allowed_mime_types;
 
 drop policy if exists "photos_storage_select" on storage.objects;
 create policy "photos_storage_select" on storage.objects
@@ -121,7 +130,98 @@ create trigger prevent_public_signup
   before insert on auth.users
   for each row execute function public.prevent_public_signup();
 
--- ---------- Créer le compte administrateur ----------
+-- ============================================================
+-- FORMULAIRE DE CONTACT (Edge Function « contact »)
+-- ============================================================
+
+-- ---------- Table des messages ----------
+create table if not exists public.contact_messages (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  email text not null,
+  phone text,
+  message text not null,
+  ip_hash text,
+  created_at timestamptz not null default now()
+);
+
+-- RLS : personne n'a accès via les clés anon/authenticated.
+-- La fonction utilise service_role (contourne le RLS) ; l'administration
+-- relit les messages via un outil SQL (pas d'exposition web).
+alter table public.contact_messages enable row level security;
+
+-- (Aucune policy : deny-by-default pour anon et authenticated.)
+
+-- ---------- Rate limiting par IP (5 messages/heure) ----------
+-- Requise pour encode(digest(...)) : extension pgcrypto
+create extension if not exists pgcrypto;
+
+-- Table de comptage (sans données personnelles : uniquement hash + horodatage)
+create table if not exists public.contact_rate_limit (
+  ip_hash text primary key,
+  window_start timestamptz not null default now()
+);
+
+-- RLS activée, AUCUNE policy : la clé anon (publique dans le bundle) ne doit
+-- ni lire ni surtout SUPPRIMER les compteurs (sinon bypass du rate limiting).
+-- L'Edge Function passe par service_role qui contourne le RLS.
+alter table public.contact_rate_limit enable row level security;
+
+-- La fonction de rate limiting n'est exécutable que par service_role.
+-- (Sans ces revoke, la clé anon pourrait l'appeler et saturer les compteurs
+-- d'autres IPs — DoS du formulaire.)
+revoke execute on function public.consume_contact_rate_limit(text, integer, integer) from public;
+revoke execute on function public.consume_contact_rate_limit(text, integer, integer) from anon;
+revoke execute on function public.consume_contact_rate_limit(text, integer, integer) from authenticated;
+grant execute on function public.consume_contact_rate_limit(text, integer, integer) to service_role;
+
+-- Appelée par l'Edge Function avec service_role. L'IP est hashée (SHA-256)
+-- avant stockage : aucune donnée personnelle brute en base (RGPD).
+-- La fonction est SECURITY DEFINER + search_path verrouillé (bonnes pratiques
+-- de durcissement PostgreSQL) pour ne pas dépendre des policies RLS.
+create or replace function public.consume_contact_rate_limit(
+  p_ip text,
+  p_window_seconds integer default 3600,
+  p_max integer default 5
+)
+returns boolean
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_ip_hash text;
+  v_count integer;
+begin
+  if p_ip is null or p_ip = '' or p_ip = 'unknown' then
+    return false; -- fail-closed : IP inconnue → refus
+  end if;
+
+  v_ip_hash := encode(digest(p_ip, 'sha256'), 'hex');
+
+  -- Purge des anciens choix (suppression best-effort)
+  delete from public.contact_rate_limit
+  where window_start < now() - make_interval(secs => p_window_seconds * 2);
+
+  select count into v_count
+  from public.contact_rate_limit
+  where ip_hash = v_ip_hash
+    and window_start > now() - make_interval(secs => p_window_seconds);
+
+  if v_count >= p_max then
+    return false;
+  end if;
+
+  insert into public.contact_rate_limit (ip_hash, window_start)
+  values (v_ip_hash, now());
+
+  return true;
+end;
+$$;
+
+-- ============================================================
+-- Créer le compte administrateur
+-- ============================================================
 -- 1. Dans le dashboard : Authentication → Users → Add user
 --    (e-mail + mot de passe de l'admin)
 -- 2. (Recommandé) Authentication → Sign In / Providers :

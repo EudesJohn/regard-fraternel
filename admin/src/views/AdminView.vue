@@ -17,6 +17,7 @@ import {
   slotDefault
 } from '../../../src/lib/photos.js'
 import Icon from '../../../src/components/Icon.vue'
+import { fakeDelay, LIMITS } from '../../../src/lib/validation.js'
 
 /* ---------- État ---------- */
 const session = ref(null)
@@ -33,6 +34,35 @@ const email = ref('')
 const password = ref('')
 const loginError = ref('')
 const loginBusy = ref(false)
+
+/* ---------- Anti force brute côté client (complète la porte /admin) ---------- */
+const LOCK_KEY = 'rf_admin_lock'
+const MAX_LOGIN_TRIES = 5
+const LOCK_SECONDS = 300 // 5 minutes
+
+const lockUntil = () => Number(sessionStorage.getItem(LOCK_KEY) || 0)
+const isLocked = () => Date.now() < lockUntil()
+const lockRemaining = () => Math.max(0, Math.ceil((lockUntil() - Date.now()) / 1000))
+
+/** Journalise un échec local et bloque après MAX_LOGIN_TRIES tentatives. */
+function registerFailedAttempt() {
+  const key = `${LOCK_KEY}:count`
+  const count = Number(sessionStorage.getItem(key) || 0) + 1
+  sessionStorage.setItem(key, String(count))
+  if (count >= MAX_LOGIN_TRIES) {
+    sessionStorage.setItem(LOCK_KEY, String(Date.now() + LOCK_SECONDS * 1000))
+    sessionStorage.setItem(key, '0')
+    console.warn(
+      JSON.stringify({
+        app: 'admin-ui',
+        event: 'login_locked_client',
+        ts: new Date().toISOString(),
+        remaining_seconds: LOCK_SECONDS
+      })
+    )
+  }
+  return isLocked()
+}
 
 /* Ajout de photos libres */
 const files = ref([])
@@ -103,18 +133,38 @@ const onWindowDrop = (e) => {
 }
 
 const signIn = async () => {
+  if (loginBusy.value) return
+
+  // Blocage local actif ? (miroir du rate limiting serveur de la porte /admin)
+  if (isLocked()) {
+    loginError.value = `Trop de tentatives. Réessayez dans ${lockRemaining()} secondes.`
+    return
+  }
+
   loginBusy.value = true
   loginError.value = ''
-  const { error } = await supabase.auth.signInWithPassword({
-    email: email.value,
+
+  // Débit artificiel : la réponse prend toujours ~500 ms (anti-énumération temporelle).
+  const [result] = await Promise.all([supabase.auth.signInWithPassword({
+    email: email.value.trim().toLowerCase(),
     password: password.value
-  })
+  }), fakeDelay(500)])
+  const { error } = result
   loginBusy.value = false
+
   if (error) {
-    loginError.value = error.message === 'Invalid login credentials'
-      ? 'Identifiants incorrects.'
-      : error.message
+    const locked = registerFailedAttempt()
+    // Message UNIQUEMENT générique : ni le type de compte, ni l'erreur technique
+    // (rate limit Supabase, compte inexistant…) ne fuient vers l'écran de connexion.
+    loginError.value = locked
+      ? `Trop de tentatives. Réessayez dans ${LOCK_SECONDS / 60} minutes.`
+      : 'E-mail ou mot de passe incorrect.'
+    return
   }
+
+  sessionStorage.removeItem(`${LOCK_KEY}:count`)
+  sessionStorage.removeItem(LOCK_KEY)
+  password.value = ''
 }
 
 const signingOut = ref(false)
@@ -141,13 +191,29 @@ const flash = (msg, type = 'success') => {
   setTimeout(() => (notice.value = ''), 4000)
 }
 
-/* Message clair si la migration du schéma (colonne key) n'a pas été appliquée */
+/**
+ * Journalisation locale (console) — l'erreur TECHNIQUE reste dans la console
+ * de l'administrateur, jamais affichée dans l'interface (pas de fuite de
+ * détails de base de données / stack traces à l'écran).
+ */
+function logError(context, err) {
+  console.error(
+    JSON.stringify({ app: 'admin-ui', event: 'operation_failed', context, message: err?.message, ts: new Date().toISOString() })
+  )
+}
+
+/** Message GÉNÉRIQUE à afficher, avec indice si le schéma n'est pas à jour. */
 const withHint = (err) => {
-  const msg = err.message || ''
+  logError('admin_operation', err)
+  const msg = err?.message || ''
   if (/key/i.test(msg) && /(does not exist|could not find|schema cache|on conflict)/i.test(msg)) {
     return "Erreur : la migration du schéma n'est pas appliquée. Exécutez « supabase/schema.sql » dans l'éditeur SQL de Supabase (colonne key)."
   }
-  return `Erreur : ${msg}`
+  if (/validation|refusée|refusé|taille|format/i.test(msg)) {
+    // Nos propres messages de validation : compréhensibles et sûrs à afficher.
+    return `Erreur : ${msg}`
+  }
+  return "Une erreur est survenue. Vérifiez votre connexion puis réessayez."
 }
 
 /* ---------- Emplacements fixes ---------- */
@@ -242,7 +308,7 @@ const resetSlot = async (slot) => {
     flash('Photo par défaut restaurée.')
     await loadSlots()
   } catch (err) {
-    flash(`Erreur : ${err.message}`, 'error')
+    flash(withHint(err), 'error')
   } finally {
     busy.value = false
   }
@@ -283,7 +349,7 @@ const addPhotos = async () => {
     newCaption.value = ''
     await loadPhotos()
   } catch (e) {
-    flash(`Erreur : ${e.message}`, 'error')
+    flash(withHint(e), 'error')
   } finally {
     busy.value = false
   }
@@ -360,12 +426,12 @@ const startEdit = (photo) => {
 const saveCaption = async (photo) => {
   busy.value = true
   try {
-    await updatePhoto(photo.id, { caption: editingCaption.value.trim() })
-    photo.caption = editingCaption.value.trim()
+    await updatePhoto(photo.id, { caption: editingCaption.value.trim().slice(0, LIMITS.caption) })
+    photo.caption = editingCaption.value.trim().slice(0, LIMITS.caption)
     editingId.value = null
     flash('Légende enregistrée.')
   } catch (e) {
-    flash(`Erreur : ${e.message}`, 'error')
+    flash(withHint(e), 'error')
   } finally {
     busy.value = false
   }
@@ -380,7 +446,7 @@ const onReplaceSelected = async (photo, e) => {
     flash('Photo remplacée.')
     await loadPhotos()
   } catch (e) {
-    flash(`Erreur : ${e.message}`, 'error')
+    flash(withHint(e), 'error')
   } finally {
     busy.value = false
     replacingId.value = null
@@ -395,7 +461,7 @@ const removePhoto = async (photo) => {
     flash('Photo supprimée.')
     await loadPhotos()
   } catch (e) {
-    flash(`Erreur : ${e.message}`, 'error')
+    flash(withHint(e), 'error')
   } finally {
     busy.value = false
   }
@@ -407,7 +473,7 @@ const reorder = async (photo, dir) => {
     await movePhoto(photo, dir, photos.value)
     await loadPhotos()
   } catch (e) {
-    flash(`Erreur : ${e.message}`, 'error')
+    flash(withHint(e), 'error')
   } finally {
     busy.value = false
   }
@@ -448,11 +514,11 @@ VITE_SUPABASE_ANON_KEY=eyJ...</pre>
       <form class="admin__form" @submit.prevent="signIn">
         <div class="form-field">
           <label for="admin-email">E-mail</label>
-          <input id="admin-email" v-model="email" type="email" required placeholder="admin@regardfraternel.org" />
+          <input id="admin-email" v-model="email" type="email" required maxlength="254" autocomplete="username" placeholder="admin@regardfraternel.org" />
         </div>
         <div class="form-field">
           <label for="admin-password">Mot de passe</label>
-          <input id="admin-password" v-model="password" type="password" required placeholder="••••••••" />
+          <input id="admin-password" v-model="password" type="password" required maxlength="128" autocomplete="current-password" placeholder="••••••••" />
         </div>
         <p v-if="loginError" class="admin__error">{{ loginError }}</p>
         <button type="submit" class="btn btn--primary" style="width: 100%; justify-content: center" :disabled="loginBusy">
@@ -563,6 +629,7 @@ VITE_SUPABASE_ANON_KEY=eyJ...</pre>
                   v-model="slotCaptions[slot.key]"
                   class="admin__caption-input"
                   type="text"
+                  :maxlength="LIMITS.caption"
                   :placeholder="`Légende (optionnelle) — ${slot.label}`"
                   @keyup.enter="saveSlotCaption(slot)"
                 />
@@ -594,7 +661,7 @@ VITE_SUPABASE_ANON_KEY=eyJ...</pre>
           <label class="admin__file">
             <Icon name="zoomIn" :size="18" />
             Choisir des fichiers
-            <input type="file" accept="image/*" multiple @change="onFilesSelected" />
+            <input type="file" accept="image/jpeg,image/png,image/webp" multiple @change="onFilesSelected" />
           </label>
           <span class="admin__drop-hint">
             ou glissez-déposez vos photos ici
@@ -604,6 +671,7 @@ VITE_SUPABASE_ANON_KEY=eyJ...</pre>
             v-model="newCaption"
             class="admin__caption-input"
             type="text"
+            :maxlength="LIMITS.caption"
             placeholder="Légende (optionnelle) appliquée à toutes les photos"
           />
           <button class="btn btn--primary" :disabled="busy || !files.length" @click="addPhotos">
@@ -660,6 +728,7 @@ VITE_SUPABASE_ANON_KEY=eyJ...</pre>
                   v-model="editingCaption"
                   class="admin__caption-input"
                   type="text"
+                  :maxlength="LIMITS.caption"
                   placeholder="Légende"
                   @keyup.enter="saveCaption(photo)"
                   @keyup.esc="editingId = null"

@@ -1,9 +1,44 @@
 import { supabase, isSupabaseConfigured } from './supabase.js'
 import { defaultPhotos } from './defaultPhotos.js'
+// Import explicite : SECTIONS est utilisé dans ce module (whitelist), et
+// ré-exporté — les deux sont nécessaires, un seul ne suffit pas.
+import { SECTIONS, sectionLabel, slotDefault } from './sections.js'
+import { sanitizeCaption, sanitizePhotoUrl, assertSafeUpload, safeFileName } from './validation.js'
 
-export { SECTIONS, sectionLabel, slotDefault } from './sections.js'
+export { SECTIONS, sectionLabel, slotDefault }
 
 const BUCKET = 'photos'
+
+/* ============================================================
+ * Garde-fous d'entrée (défense en profondeur — la vraie police
+ * reste le RLS Supabase ; ici on bloque tôt et on journalise).
+ * ============================================================ */
+
+/** Journalisation légère des refus (console en dev, silencieux en prod). */
+function reject(reason) {
+  if (import.meta.env.DEV) console.warn(`[photos] requête refusée : ${reason}`)
+  throw new Error('Donnée refusée par la validation (raison technique masquée).')
+}
+
+/** Vrai si la chaîne est une clé d'emplacement valide (slot). */
+const isSlotKey = (k) => typeof k === 'string' && /^[a-z0-9-]{1,40}$/.test(k)
+
+/** Sections autorisées — whitelist stricte (aucune chaîne libre en base). */
+const ALLOWED_SECTIONS = new Set(SECTIONS.map((s) => s.slug))
+
+function guardSection(section) {
+  if (!ALLOWED_SECTIONS.has(section)) reject(`section inconnue « ${section} »`)
+}
+
+function guardCaption(caption) {
+  if (typeof caption !== 'string') reject('légende absente')
+  const v = sanitizeCaption(caption)
+  if (v !== caption) reject('légende invalide')
+}
+
+function guardUrl(url) {
+  if (sanitizePhotoUrl(url) === null) reject('URL photo non autorisée')
+}
 
 /**
  * Version optimisée d'une URL d'image Supabase (redimensionnement à la volée).
@@ -62,7 +97,10 @@ export async function getManagedPhotos(section) {
 
 /** Ajoute une photo : upload dans le bucket, puis ligne dans la table. */
 export async function addPhoto(section, file, caption = '') {
-  const path = `${section}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_')}`
+  guardSection(section)
+  guardCaption(caption)
+  await assertSafeUpload(file)
+  const path = `${section}/${Date.now()}-${safeFileName(file.name)}`
   const { error: uploadError } = await supabase.storage
     .from(BUCKET)
     .upload(path, file, { cacheControl: '3600', upsert: false })
@@ -85,11 +123,26 @@ export async function addPhoto(section, file, caption = '') {
   return data
 }
 
-/** Modifie la légende (et éventuellement la position) d'une photo. */
-export async function updatePhoto(id, patch) {
+/** Modifie la légende (et éventuellement la position) d'une photo — patch en liste blanche. */
+export async function updatePhoto(id, patch = {}) {
+  // Whitelist stricte : impossible d'écrire une autre colonne (anti-masse-assignment).
+  const allowed = {}
+  if ('caption' in patch) {
+    guardCaption(patch.caption)
+    allowed.caption = patch.caption
+  }
+  if ('position' in patch) {
+    if (!Number.isInteger(patch.position) || patch.position < 0 || patch.position > 100000) {
+      reject('position invalide')
+    }
+    allowed.position = patch.position
+  }
+  const cols = Object.keys(allowed)
+  if (cols.length === 0) throw new Error('Rien à mettre à jour.')
+
   const { data, error } = await supabase
     .from('photos')
-    .update(patch)
+    .update(allowed)
     .eq('id', id)
     .select('id, url, caption, position')
     .single()
@@ -124,6 +177,10 @@ export async function getSectionSlots(section) {
 
 /** Insère ou met à jour une photo d'emplacement fixe, identifiée par (section, key). */
 export async function saveSlotPhoto(section, key, { url, caption = '' }) {
+  guardSection(section)
+  if (!isSlotKey(key)) reject("clé d'emplacement invalide")
+  guardUrl(url)
+  guardCaption(caption)
   const { data, error } = await supabase
     .from('photos')
     .upsert({ section, key, url, caption }, { onConflict: 'section,key' })
@@ -135,7 +192,10 @@ export async function saveSlotPhoto(section, key, { url, caption = '' }) {
 
 /** Remplace l'image d'un emplacement fixe : upload + upsert + suppression de l'ancien fichier. */
 export async function replaceSlotPhoto(section, key, file, current) {
-  const path = `${section}/${key}-${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_')}`
+  guardSection(section)
+  if (!isSlotKey(key)) reject("clé d'emplacement invalide")
+  await assertSafeUpload(file)
+  const path = `${section}/${key}-${Date.now()}-${safeFileName(file.name)}`
   const { error: uploadError } = await supabase.storage
     .from(BUCKET)
     .upload(path, file, { cacheControl: '31536000', upsert: false })
@@ -177,7 +237,12 @@ function pathFromUrl(url) {
 
 /** Remplace l'image d'une photo existante (nouvel upload, suppression de l'ancien fichier). */
 export async function replacePhoto(photo, file) {
-  const path = `${photo.section || 'photos'}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_')}`
+  if (!photo || typeof photo.id !== 'string' || !/^[0-9a-f-]{36}$/i.test(photo.id)) {
+    reject('identifiant de photo invalide')
+  }
+  await assertSafeUpload(file)
+  const section = photo.section || 'photos'
+  const path = `${ALLOWED_SECTIONS.has(section) ? section : 'photos'}/${Date.now()}-${safeFileName(file.name)}`
   const { error: uploadError } = await supabase.storage
     .from(BUCKET)
     .upload(path, file, { cacheControl: '3600', upsert: false })

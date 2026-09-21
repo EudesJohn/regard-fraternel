@@ -26,8 +26,13 @@ const router = createRouter({
   }
 })
 
+const SITE_URL = 'https://www.regardfraternel.org'
+
 router.afterEach((to) => {
   document.title = `${to.meta.title || 'Accueil'} — REGARD FRATERNEL`
+  // SEO : URL canonique par page (évite le contenu dupliqué aux yeux de Google).
+  const canonical = document.querySelector('link[rel="canonical"]')
+  if (canonical) canonical.href = `${SITE_URL}${to.path}`
 })
 
 export default router
