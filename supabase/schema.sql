@@ -180,18 +180,12 @@ create table if not exists public.contact_rate_limit (
 -- L'Edge Function passe par service_role qui contourne le RLS.
 alter table public.contact_rate_limit enable row level security;
 
--- La fonction de rate limiting n'est exécutable que par service_role.
--- (Sans ces revoke, la clé anon pourrait l'appeler et saturer les compteurs
--- d'autres IPs — DoS du formulaire.)
-revoke execute on function public.consume_contact_rate_limit(text, integer, integer) from public;
-revoke execute on function public.consume_contact_rate_limit(text, integer, integer) from anon;
-revoke execute on function public.consume_contact_rate_limit(text, integer, integer) from authenticated;
-grant execute on function public.consume_contact_rate_limit(text, integer, integer) to service_role;
-
 -- Appelée par l'Edge Function avec service_role. L'IP est hashée (SHA-256)
 -- avant stockage : aucune donnée personnelle brute en base (RGPD).
 -- La fonction est SECURITY DEFINER + search_path verrouillé (bonnes pratiques
 -- de durcissement PostgreSQL) pour ne pas dépendre des policies RLS.
+-- NB : la fonction est créée AVANT les revoke/grant ci-dessous, sinon PostgreSQL
+-- échoue avec « function ... does not exist » (bug d'ordre du script initial).
 create or replace function public.consume_contact_rate_limit(
   p_ip text,
   p_window_seconds integer default 3600,
@@ -231,6 +225,14 @@ begin
   return true;
 end;
 $$;
+
+-- La fonction de rate limiting n'est exécutable que par service_role.
+-- (Sans ces revoke, la clé anon pourrait l'appeler et saturer les compteurs
+-- d'autres IPs — DoS du formulaire.)
+revoke execute on function public.consume_contact_rate_limit(text, integer, integer) from public;
+revoke execute on function public.consume_contact_rate_limit(text, integer, integer) from anon;
+revoke execute on function public.consume_contact_rate_limit(text, integer, integer) from authenticated;
+grant execute on function public.consume_contact_rate_limit(text, integer, integer) to service_role;
 
 -- ============================================================
 -- CONFIGURATION DES DONS (page /don — éditable dans l'admin)
