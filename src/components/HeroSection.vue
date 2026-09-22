@@ -16,10 +16,11 @@ import Icon from './Icon.vue'
           REGARD FRATERNEL
           <span>— des vies humaines sauvées</span>
         </h1>
-        <p class="hero__sub">
-          {{ site.slogan }}. Une ONG béninoise à but non lucratif, apolitique et laïque,
-          au service des droits humains, de l'éducation, de la santé et du développement
-          des communautés vulnérables.
+        <p class="hero__slogan-band">
+          <span class="hero__slogan-band__mark" aria-hidden="true">“</span>
+          <span class="hero__slogan-band__text">
+            Juste un <em>regard</em> et des vies humaines sont sauvées
+          </span>
         </p>
         <div class="hero__cta">
           <a href="#actions" class="btn btn--primary">

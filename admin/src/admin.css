@@ -24,8 +24,8 @@
   --white: #ffffff;
 
   /* Typographie */
-  --font-display: 'Fraunces', Georgia, serif;
-  --font-body: 'Inter', system-ui, sans-serif;
+  --font-display: 'Cormorant Garamond', 'Times New Roman', serif;
+  --font-body: 'Hanken Grotesk', system-ui, sans-serif;
 
   /* Ombres & rayons */
   --shadow-sm: 0 2px 12px rgba(34, 25, 88, 0.08);
@@ -235,14 +235,16 @@ select:focus-visible,
 .admin-shell__logo {
   width: 46px;
   height: auto;
-  border-radius: 12px;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 50%;
   filter: drop-shadow(0 3px 10px rgba(0, 0, 0, 0.35));
 }
 
 .admin-shell__name {
   font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 1.12rem;
+  font-weight: 700;
+  font-size: 1.3rem;
   letter-spacing: 0.02em;
   line-height: 1.15;
 }
@@ -306,8 +308,8 @@ select:focus-visible,
 
 .admin__title {
   font-family: var(--font-display);
-  font-size: clamp(1.5rem, 3vw, 1.8rem);
-  font-weight: 600;
+  font-size: clamp(1.6rem, 3vw, 2rem);
+  font-weight: 700;
   line-height: 1.2;
   color: var(--rose-900);
   margin-bottom: 10px;
@@ -315,8 +317,8 @@ select:focus-visible,
 
 .admin__subtitle {
   font-family: var(--font-display);
-  font-size: 1.18rem;
-  font-weight: 600;
+  font-size: 1.4rem;
+  font-weight: 700;
   color: var(--rose-800);
   margin-bottom: 14px;
   display: flex;
@@ -870,8 +872,8 @@ select:focus-visible,
 
 .admin__slot-body h4 {
   font-family: var(--font-display);
-  font-size: 1.05rem;
-  font-weight: 600;
+  font-size: 1.25rem;
+  font-weight: 700;
   color: var(--rose-900);
   line-height: 1.3;
 }

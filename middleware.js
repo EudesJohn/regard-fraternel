@@ -221,7 +221,7 @@ function gatePage(error, requireEmail = false) {
 <title>Accès restreint — REGARD FRATERNEL</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Hanken+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
@@ -232,7 +232,7 @@ function gatePage(error, requireEmail = false) {
     justify-content: center;
     gap: 28px;
     padding: 24px;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Hanken Grotesk', system-ui, sans-serif;
     color: #1c1c2e;
     background:
       radial-gradient(900px 420px at 85% -10%, rgba(194, 24, 138, 0.22), transparent 60%),
@@ -251,7 +251,7 @@ function gatePage(error, requireEmail = false) {
     width: 62px;
     height: 62px;
     margin: 0 auto 18px;
-    border-radius: 16px;
+    border-radius: 50%;
     object-fit: cover;
   }
   .gate-eyebrow {
@@ -263,9 +263,9 @@ function gatePage(error, requireEmail = false) {
     margin-bottom: 10px;
   }
   .gate-card h1 {
-    font-family: 'Fraunces', Georgia, serif;
-    font-size: 1.7rem;
-    font-weight: 600;
+    font-family: 'Cormorant Garamond', 'Times New Roman', serif;
+    font-size: 2rem;
+    font-weight: 700;
     color: #191243;
     margin-bottom: 8px;
   }
@@ -360,7 +360,7 @@ function blockedPage() {
     align-items: center;
     justify-content: center;
     padding: 24px;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Hanken Grotesk', system-ui, sans-serif;
     background: #191243;
     color: #fbf8f2;
   }
