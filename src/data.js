@@ -1,7 +1,7 @@
 export const site = {
   name: 'REGARD FRATERNEL',
   short: 'RF',
-  slogan: 'Juste un regard et des vies humaines sont sauvées',
+  slogan: 'Juste un Regard et des vies Humaines sont sauvées',
   devise: 'Solidarité, Espérance et Amour',
   recu: 'Récépissé N° 2013/0173/DEP-ATL-LITT/SG/SAG-ASSOC du 28 mai 2013',
   loi: 'Loi N° 2025-19 du 22 juillet 2025',

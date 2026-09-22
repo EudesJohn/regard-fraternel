@@ -90,7 +90,7 @@ const stats = [
           <p class="hero__slogan-band">
             <span class="hero__slogan-band__mark" aria-hidden="true">“</span>
             <span class="hero__slogan-band__text">
-              Juste un <em>regard</em> et des vies humaines sont sauvées
+              Juste un <em>Regard</em> et des vies <em>Humaines</em> sont sauvées
             </span>
           </p>
           <div class="hero__cta">
