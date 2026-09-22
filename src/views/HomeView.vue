@@ -6,7 +6,7 @@ import { useManySlots } from '../lib/useSectionSlots.js'
 import Icon from '../components/Icon.vue'
 
 const defaultSlides = [
-  { image: '/images/photos/don/don-01.jpg', kicker: 'ONG · République du Bénin', title: 'REGARD FRATERNEL', span: 'des vies humaines sauvées' },
+  { image: '/images/photos/don/don-01.jpg', kicker: 'ONG · République du Bénin', title: 'REGARD FRATERNEL', span: 'des vies Humaines sauvées' },
   { image: '/images/photos/scolaire/scolaire-01.jpg', kicker: 'Campagne de distribution', title: 'Des kits scolaires', span: 'pour chaque enfant' },
   { image: '/images/photos/sanitaire/sanitaire-01.jpg', kicker: 'Actions sur le terrain', title: 'Des infrastructures', span: 'au service des écoles' }
 ]
@@ -44,7 +44,7 @@ onMounted(async () => {
       image: p.url,
       kicker: i === 0 ? 'ONG · République du Bénin' : 'Actions sur le terrain',
       title: p.caption || (i === 0 ? 'REGARD FRATERNEL' : 'Des actions concrètes'),
-      span: i === 0 ? 'des vies humaines sauvées' : 'au service des communautés'
+      span: i === 0 ? 'des vies Humaines sauvées' : 'au service des communautés'
     }))
     // Précharge la 1ʳᵉ diapositive (la plus importante) et les suivantes en miniature
     preloadImage(heroSlides.value[0].image)

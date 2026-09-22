@@ -14,7 +14,7 @@ import Icon from './Icon.vue'
         <p class="hero__kicker">Organisation Non Gouvernementale · Bénin</p>
         <h1 class="hero__title">
           REGARD FRATERNEL
-          <span>— des vies humaines sauvées</span>
+          <span>— des vies Humaines sauvées</span>
         </h1>
         <p class="hero__slogan-band">
           <span class="hero__slogan-band__mark" aria-hidden="true">“</span>
