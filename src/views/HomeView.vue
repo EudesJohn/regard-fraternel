@@ -164,7 +164,7 @@ const stats = [
       <div class="values__bg" :style="{ backgroundImage: `url(${slotUrl('hero', 'valeurs')})` }"></div>
       <div class="values__scrim"></div>
       <div class="container">
-        <p class="eyebrow reveal" v-reveal style="color: var(--terracotta-400)">Notre devise</p>
+        <p class="eyebrow reveal" v-reveal style="color: var(--rose-400)">Notre devise</p>
         <h2 class="section-title reveal" v-reveal style="color: var(--white); margin-bottom: 54px">
           Solidarité · Espérance · <em>Amour</em>
         </h2>

@@ -23,7 +23,7 @@ const values = [
 <template>
   <section class="section values">
     <div class="container">
-      <p class="eyebrow" style="color: var(--terracotta-400)">Notre devise</p>
+      <p class="eyebrow" style="color: var(--rose-400)">Notre devise</p>
       <h2 class="section-title" style="color: var(--white); margin-bottom: 54px">
         Solidarité · Espérance · <em>Amour</em>
       </h2>

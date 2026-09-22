@@ -133,9 +133,9 @@ const channels = computed(() => config.value?.payment_channels || [])
           <p>{{ config.note }}</p>
           <p style="margin-top: 14px">
             Une question sur votre don ?
-            <RouterLink to="/contact" style="font-weight: 600; color: var(--forest-600)">Écrivez-nous</RouterLink>
+            <RouterLink to="/contact" style="font-weight: 600; color: var(--rose-600)">Écrivez-nous</RouterLink>
             — ou devenez
-            <RouterLink to="/adhesion" style="font-weight: 600; color: var(--forest-600)">membre de l'ONG</RouterLink>.
+            <RouterLink to="/adhesion" style="font-weight: 600; color: var(--rose-600)">membre de l'ONG</RouterLink>.
           </p>
         </div>
       </div>

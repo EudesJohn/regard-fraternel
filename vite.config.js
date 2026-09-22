@@ -12,7 +12,7 @@ export default defineConfig({
         name: 'REGARD FRATERNEL — ONG',
         short_name: 'REGARD FRATERNEL',
         description: "ONG béninoise — Solidarité, Espérance et Amour",
-        theme_color: '#0b2a21',
+        theme_color: '#191243',
         background_color: '#fbf8f2',
         display: 'standalone',
         lang: 'fr',

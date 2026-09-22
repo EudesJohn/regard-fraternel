@@ -9,7 +9,7 @@ est **« Solidarité, Espérance et Amour »**.
 - **Vue 3** (Composition API) + **Vite**
 - **Supabase** (PostgreSQL + Auth + Storage) pour la base de données et la gestion
   des photos par l'administrateur
-- CSS personnalisé (design system maison) — palette vert forêt / terracotta / sable
+- CSS personnalisé (design system maison) — palette bleu violacé sombre / rose clair / magenta
 - Polices : Fraunces (titres) + Inter (texte)
 
 ## Architecture — un seul déploiement, admin protégée

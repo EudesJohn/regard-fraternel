@@ -233,11 +233,11 @@ function gatePage(error, requireEmail = false) {
     gap: 28px;
     padding: 24px;
     font-family: 'Inter', system-ui, sans-serif;
-    color: #1c2420;
+    color: #1c1c2e;
     background:
-      radial-gradient(900px 420px at 85% -10%, rgba(201, 107, 61, 0.22), transparent 60%),
-      radial-gradient(700px 380px at -10% 110%, rgba(43, 122, 96, 0.25), transparent 55%),
-      linear-gradient(160deg, #10382c 0%, #0b2a21 100%);
+      radial-gradient(900px 420px at 85% -10%, rgba(194, 24, 138, 0.22), transparent 60%),
+      radial-gradient(700px 380px at -10% 110%, rgba(194, 24, 138, 0.25), transparent 55%),
+      linear-gradient(160deg, #2d2270 0%, #191243 100%);
   }
   .gate-card {
     width: min(420px, 100%);
@@ -259,19 +259,19 @@ function gatePage(error, requireEmail = false) {
     font-weight: 700;
     letter-spacing: 0.26em;
     text-transform: uppercase;
-    color: #c96b3d;
+    color: #f2a6d8;
     margin-bottom: 10px;
   }
   .gate-card h1 {
     font-family: 'Fraunces', Georgia, serif;
     font-size: 1.7rem;
     font-weight: 600;
-    color: #0b2a21;
+    color: #191243;
     margin-bottom: 8px;
   }
   .gate-sub {
     font-size: 0.92rem;
-    color: #45524b;
+    color: #4b4a5e;
     margin-bottom: 26px;
   }
   .gate-input {
@@ -282,31 +282,31 @@ function gatePage(error, requireEmail = false) {
     font-family: inherit;
     font-size: 0.95rem;
     background: #fff;
-    color: #1c2420;
+    color: #1c1c2e;
     margin-bottom: 14px;
     transition: border-color 0.25s ease, box-shadow 0.25s ease;
   }
   .gate-input:focus {
     outline: none;
-    border-color: #2b7a60;
-    box-shadow: 0 0 0 4px rgba(43, 122, 96, 0.14);
+    border-color: #c2188a;
+    box-shadow: 0 0 0 4px rgba(194, 24, 138, 0.14);
   }
   .gate-btn {
     width: 100%;
     padding: 14px 24px;
     border: none;
     border-radius: 999px;
-    background: #c96b3d;
+    background: #c2188a;
     color: #fff;
     font-family: inherit;
     font-size: 0.95rem;
     font-weight: 600;
     cursor: pointer;
-    box-shadow: 0 8px 24px rgba(201, 107, 61, 0.35);
+    box-shadow: 0 8px 24px rgba(194, 24, 138, 0.35);
     transition: background 0.25s ease, transform 0.25s ease;
   }
   .gate-btn:hover {
-    background: #ad4f24;
+    background: #a11573;
     transform: translateY(-1px);
   }
   .gate-error {
@@ -361,7 +361,7 @@ function blockedPage() {
     justify-content: center;
     padding: 24px;
     font-family: 'Inter', system-ui, sans-serif;
-    background: #0b2a21;
+    background: #191243;
     color: #fbf8f2;
   }
   .box { max-width: 460px; text-align: center; line-height: 1.7; }

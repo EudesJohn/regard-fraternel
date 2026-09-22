@@ -4,27 +4,23 @@
    ============================================================ */
 
 :root {
-  /* Couleurs */
-  --forest-900: #0b2a21;
-  --forest-800: #10382c;
-  --forest-700: #16493a;
-  --forest-600: #1f5f4b;
-  --forest-500: #2b7a60;
-  --forest-100: #dcebe4;
-  --forest-50: #eef5f1;
-
-  --terracotta-600: #ad4f24;
-  --terracotta-500: #c96b3d;
-  --terracotta-400: #d9834f;
-  --terracotta-100: #f6e4d8;
+  /* Couleurs — structure bleu violacé sombre · accents rose clair · boutons magenta */
+  --rose-900: #191243;
+  --rose-800: #221958;
+  --rose-700: #2d2270;
+  --rose-600: #a11573;
+  --rose-500: #c2188a;
+  --rose-400: #f2a6d8;
+  --rose-100: #f8e3f1;
+  --rose-50: #fdeff8;
 
   --sand-100: #f6f0e6;
   --sand-200: #efe5d3;
   --sand-300: #e3d5bc;
 
   --ivory: #fbf8f2;
-  --ink: #1c2420;
-  --ink-soft: #45524b;
+  --ink: #1c1c2e;
+  --ink-soft: #4b4a5e;
   --white: #ffffff;
 
   /* Typographie */
@@ -32,9 +28,9 @@
   --font-body: 'Inter', system-ui, sans-serif;
 
   /* Ombres & rayons */
-  --shadow-sm: 0 2px 12px rgba(11, 42, 33, 0.08);
-  --shadow-md: 0 12px 40px rgba(11, 42, 33, 0.14);
-  --shadow-lg: 0 24px 70px rgba(11, 42, 33, 0.22);
+  --shadow-sm: 0 2px 12px rgba(34, 25, 88, 0.08);
+  --shadow-md: 0 12px 40px rgba(34, 25, 88, 0.14);
+  --shadow-lg: 0 24px 70px rgba(34, 25, 88, 0.22);
   --radius-sm: 10px;
   --radius-md: 18px;
   --radius-lg: 28px;
@@ -59,8 +55,8 @@ body {
   font-family: var(--font-body);
   color: var(--ink);
   background:
-    radial-gradient(1100px 480px at 85% -10%, rgba(43, 122, 96, 0.1), transparent 60%),
-    radial-gradient(900px 420px at -10% 20%, rgba(201, 107, 61, 0.07), transparent 55%),
+    radial-gradient(1100px 480px at 85% -10%, rgba(194, 24, 138, 0.1), transparent 60%),
+    radial-gradient(900px 420px at -10% 20%, rgba(194, 24, 138, 0.07), transparent 55%),
     var(--ivory);
   line-height: 1.65;
   -webkit-font-smoothing: antialiased;
@@ -90,7 +86,7 @@ ul {
 }
 
 ::selection {
-  background: var(--terracotta-500);
+  background: var(--rose-500);
   color: var(--white);
 }
 
@@ -101,7 +97,7 @@ input:focus-visible,
 textarea:focus-visible,
 select:focus-visible,
 [tabindex]:focus-visible {
-  outline: 3px solid var(--terracotta-500);
+  outline: 3px solid var(--rose-500);
   outline-offset: 3px;
   border-radius: 6px;
 }
@@ -122,15 +118,15 @@ select:focus-visible,
 }
 
 .btn--primary {
-  background: var(--terracotta-500);
+  background: var(--rose-500);
   color: var(--white);
-  box-shadow: 0 8px 24px rgba(201, 107, 61, 0.35);
+  box-shadow: 0 8px 24px rgba(194, 24, 138, 0.35);
 }
 
 .btn--primary:hover {
-  background: var(--terracotta-600);
+  background: var(--rose-600);
   transform: translateY(-2px);
-  box-shadow: 0 14px 32px rgba(201, 107, 61, 0.42);
+  box-shadow: 0 14px 32px rgba(194, 24, 138, 0.42);
 }
 
 .btn--sm {
@@ -170,7 +166,7 @@ select:focus-visible,
   font-size: 0.82rem;
   font-weight: 600;
   letter-spacing: 0.02em;
-  color: var(--forest-900);
+  color: var(--rose-900);
 }
 
 .form-field input,
@@ -193,8 +189,8 @@ select:focus-visible,
 .form-field input:focus,
 .form-field textarea:focus {
   outline: none;
-  border-color: var(--forest-500);
-  box-shadow: 0 0 0 4px rgba(43, 122, 96, 0.14);
+  border-color: var(--rose-500);
+  box-shadow: 0 0 0 4px rgba(194, 24, 138, 0.14);
   background: var(--white);
 }
 
@@ -209,11 +205,11 @@ select:focus-visible,
 
 .admin-shell__bar {
   background:
-    radial-gradient(700px 260px at 90% -60%, rgba(201, 107, 61, 0.28), transparent 60%),
-    linear-gradient(180deg, var(--forest-800), var(--forest-900));
+    radial-gradient(700px 260px at 90% -60%, rgba(194, 24, 138, 0.28), transparent 60%),
+    linear-gradient(180deg, var(--rose-800), var(--rose-900));
   color: var(--white);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 6px 24px rgba(11, 42, 33, 0.25);
+  box-shadow: 0 6px 24px rgba(34, 25, 88, 0.25);
   position: sticky;
   top: 0;
   z-index: 20;
@@ -258,7 +254,7 @@ select:focus-visible,
   font-weight: 600;
   letter-spacing: 0.3em;
   text-transform: uppercase;
-  color: var(--terracotta-400);
+  color: var(--rose-400);
 }
 
 .admin-shell__site {
@@ -277,7 +273,7 @@ select:focus-visible,
 
 .admin-shell__site:hover {
   background: rgba(255, 255, 255, 0.16);
-  border-color: var(--terracotta-400);
+  border-color: var(--rose-400);
   transform: translateY(-1px);
 }
 
@@ -313,7 +309,7 @@ select:focus-visible,
   font-size: clamp(1.5rem, 3vw, 1.8rem);
   font-weight: 600;
   line-height: 1.2;
-  color: var(--forest-900);
+  color: var(--rose-900);
   margin-bottom: 10px;
 }
 
@@ -321,7 +317,7 @@ select:focus-visible,
   font-family: var(--font-display);
   font-size: 1.18rem;
   font-weight: 600;
-  color: var(--forest-800);
+  color: var(--rose-800);
   margin-bottom: 14px;
   display: flex;
   align-items: center;
@@ -333,7 +329,7 @@ select:focus-visible,
   width: 6px;
   height: 22px;
   border-radius: 3px;
-  background: linear-gradient(180deg, var(--terracotta-400), var(--terracotta-600));
+  background: linear-gradient(180deg, var(--rose-400), var(--rose-600));
 }
 
 .admin__text {
@@ -343,7 +339,7 @@ select:focus-visible,
 }
 
 .admin__code {
-  background: var(--forest-900);
+  background: var(--rose-900);
   color: var(--sand-100);
   border-radius: var(--radius-sm);
   padding: 16px 18px;
@@ -383,7 +379,7 @@ select:focus-visible,
 }
 
 .admin__head .admin__text strong {
-  color: var(--forest-700);
+  color: var(--rose-700);
 }
 
 .admin__notice {
@@ -398,15 +394,15 @@ select:focus-visible,
 }
 
 .admin__notice--success {
-  background: var(--forest-50);
-  color: var(--forest-700);
-  border: 1px solid var(--forest-100);
+  background: var(--rose-50);
+  color: var(--rose-700);
+  border: 1px solid var(--rose-100);
 }
 
 .admin__notice--error {
-  background: var(--terracotta-100);
-  color: var(--terracotta-600);
-  border: 1px solid #f0cdb8;
+  background: var(--rose-100);
+  color: var(--rose-600);
+  border: 1px solid #eec3e0;
 }
 
 /* ---------- Chargement ---------- */
@@ -427,7 +423,7 @@ select:focus-visible,
   flex: none;
   border-radius: 50%;
   border: 2.5px solid var(--sand-300);
-  border-top-color: var(--forest-600);
+  border-top-color: var(--rose-600);
   animation: adminSpin 0.8s linear infinite;
 }
 
@@ -454,8 +450,8 @@ select:focus-visible,
   display: grid;
   place-items: center;
   color: var(--white);
-  background: linear-gradient(135deg, var(--forest-600), var(--forest-800));
-  box-shadow: 0 12px 28px rgba(22, 73, 58, 0.35);
+  background: linear-gradient(135deg, var(--rose-600), var(--rose-800));
+  box-shadow: 0 12px 28px rgba(92, 25, 88, 0.35);
 }
 
 .admin__login-title {
@@ -502,16 +498,16 @@ select:focus-visible,
 }
 
 .admin__tab:hover {
-  border-color: var(--forest-500);
-  color: var(--forest-700);
+  border-color: var(--rose-500);
+  color: var(--rose-700);
   transform: translateY(-1px);
 }
 
 .admin__tab.is-active {
-  background: var(--forest-700);
-  border-color: var(--forest-700);
+  background: var(--rose-700);
+  border-color: var(--rose-700);
   color: var(--white);
-  box-shadow: 0 8px 20px rgba(22, 73, 58, 0.28);
+  box-shadow: 0 8px 20px rgba(92, 25, 88, 0.28);
 }
 
 /* Chemin de la page concernée (sous les onglets) */
@@ -523,14 +519,14 @@ select:focus-visible,
   margin: -12px 0 24px;
   padding: 8px 14px;
   border-radius: 999px;
-  background: var(--forest-50);
-  border: 1px solid var(--forest-100);
+  background: var(--rose-50);
+  border: 1px solid var(--rose-100);
   font-size: 0.85rem;
   color: var(--ink-soft);
 }
 
 .admin__page-path a {
-  color: var(--forest-700);
+  color: var(--rose-700);
   font-weight: 600;
   text-decoration: none;
 }
@@ -541,7 +537,7 @@ select:focus-visible,
 }
 
 .admin__page-path-arrow {
-  color: var(--terracotta-500);
+  color: var(--rose-500);
   font-weight: 700;
 }
 
@@ -565,8 +561,8 @@ select:focus-visible,
   gap: 8px;
   padding: 11px 18px;
   border-radius: var(--radius-sm);
-  border: 1.5px solid var(--forest-500);
-  color: var(--forest-700);
+  border: 1.5px solid var(--rose-400);
+  color: var(--rose-700);
   font-weight: 600;
   font-size: 0.9rem;
   cursor: pointer;
@@ -574,7 +570,7 @@ select:focus-visible,
 }
 
 .admin__file:hover {
-  background: var(--forest-50);
+  background: var(--rose-50);
   transform: translateY(-1px);
 }
 
@@ -603,8 +599,8 @@ select:focus-visible,
 
 .admin__caption-input:focus {
   outline: none;
-  border-color: var(--forest-500);
-  box-shadow: 0 0 0 4px rgba(43, 122, 96, 0.12);
+  border-color: var(--rose-500);
+  box-shadow: 0 0 0 4px rgba(194, 24, 138, 0.12);
 }
 
 /* ---------- Grille de photos ---------- */
@@ -657,7 +653,7 @@ select:focus-visible,
 }
 
 .admin__photo.is-drop-target {
-  outline: 2.5px dashed var(--forest-500);
+  outline: 2.5px dashed var(--rose-400);
   outline-offset: 2px;
 }
 
@@ -688,13 +684,13 @@ select:focus-visible,
   border-radius: 8px;
   border: 1.5px solid var(--sand-300);
   background: var(--white);
-  color: var(--forest-700);
+  color: var(--rose-700);
   transition: all 0.2s ease;
 }
 
 .admin__icon-btn:hover {
-  border-color: var(--forest-500);
-  background: var(--forest-50);
+  border-color: var(--rose-400);
+  background: var(--rose-100);
   transform: translateY(-1px);
 }
 
@@ -730,7 +726,7 @@ select:focus-visible,
 }
 
 .admin__caption-text:hover {
-  color: var(--forest-600);
+  color: var(--rose-600);
 }
 
 .admin__caption-text.is-empty {
@@ -741,7 +737,7 @@ select:focus-visible,
 .admin__edit-link {
   border: none;
   background: none;
-  color: var(--terracotta-600);
+  color: var(--rose-600);
   font-weight: 600;
   font-size: 0.82rem;
   cursor: pointer;
@@ -749,7 +745,7 @@ select:focus-visible,
 }
 
 .admin__edit-link:hover {
-  color: var(--terracotta-500);
+  color: var(--rose-500);
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -808,21 +804,22 @@ select:focus-visible,
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  background: rgba(11, 42, 33, 0.82);
+  background: rgba(34, 25, 88, 0.82);
   color: var(--white);
   backdrop-filter: blur(6px);
   border: 1px solid rgba(255, 255, 255, 0.18);
 }
 
 .admin__slot-badge.is-custom {
-  background: rgba(176, 90, 56, 0.92);
+  background: rgba(242, 166, 216, 0.95);
+  color: var(--rose-900);
 }
 
 /* Voile de dépôt (glisser-déposer d'un fichier sur une vignette) */
 
 .admin__slot.is-drop {
-  border-color: var(--forest-500);
-  box-shadow: 0 0 0 3px rgba(43, 122, 96, 0.25), var(--shadow-md);
+  border-color: var(--rose-400);
+  box-shadow: 0 0 0 3px rgba(194, 24, 138, 0.25), var(--shadow-md);
 }
 
 .admin__slot-drop {
@@ -833,7 +830,7 @@ select:focus-visible,
   align-items: center;
   justify-content: center;
   gap: 10px;
-  background: rgba(11, 42, 33, 0.72);
+  background: rgba(34, 25, 88, 0.72);
   color: var(--white);
   font-weight: 600;
   font-size: 0.86rem;
@@ -846,9 +843,9 @@ select:focus-visible,
 /* ---------- Zone d'ajout : dépôt de fichiers ---------- */
 
 .admin__add.is-drop {
-  border-color: var(--forest-500);
-  background: var(--forest-50);
-  box-shadow: 0 0 0 3px rgba(43, 122, 96, 0.18);
+  border-color: var(--rose-400);
+  background: var(--rose-50);
+  box-shadow: 0 0 0 3px rgba(194, 24, 138, 0.18);
 }
 
 .admin__drop-hint {
@@ -858,7 +855,7 @@ select:focus-visible,
 }
 
 .admin__add.is-drop .admin__drop-hint {
-  color: var(--forest-700);
+  color: var(--rose-700);
   font-weight: 600;
   font-style: normal;
 }
@@ -875,7 +872,7 @@ select:focus-visible,
   font-family: var(--font-display);
   font-size: 1.05rem;
   font-weight: 600;
-  color: var(--forest-900);
+  color: var(--rose-900);
   line-height: 1.3;
 }
 
@@ -904,7 +901,7 @@ select:focus-visible,
 
 .admin__saved {
   margin: 0;
-  color: var(--forest-600);
+  color: var(--rose-600);
   font-weight: 700;
   font-size: 0.85rem;
 }
@@ -989,12 +986,12 @@ select:focus-visible,
 .admin__partner-body h4 {
   margin: 0 0 4px;
   font-size: 1.02rem;
-  color: var(--forest-900);
+  color: var(--rose-900);
 }
 
 .admin__partner-kicker {
   margin: 0 0 2px;
-  color: var(--terracotta-500);
+  color: var(--rose-500);
   font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -1029,7 +1026,7 @@ select:focus-visible,
 
 .admin__channels-title {
   margin-top: 18px;
-  color: var(--forest-900);
+  color: var(--rose-900);
   font-size: 1.02rem;
 }
 

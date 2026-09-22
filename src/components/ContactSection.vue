@@ -139,7 +139,7 @@ const submit = async () => {
             <label for="website">Ne pas remplir ce champ</label>
             <input id="website" v-model="form.website" type="text" name="website" tabindex="-1" autocomplete="off" />
           </div>
-          <h3 style="font-family: var(--font-display); font-size: 1.5rem; color: var(--forest-900); margin-bottom: 26px">
+          <h3 style="font-family: var(--font-display); font-size: 1.5rem; color: var(--rose-900); margin-bottom: 26px">
             Envoyez-nous un message
           </h3>
           <div class="form-grid">
