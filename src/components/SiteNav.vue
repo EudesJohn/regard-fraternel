@@ -48,7 +48,7 @@ onBeforeUnmount(() => {
       <RouterLink to="/" class="nav__brand" @click="open = false">
         <img class="nav__logo" src="/logo-light.png" alt="Logo REGARD FRATERNEL" />
         <span class="nav__name">
-          REGARD FRATERNEL
+          REGARD FRATERNEL (RF)
           <small>ONG · Bénin</small>
         </span>
       </RouterLink>

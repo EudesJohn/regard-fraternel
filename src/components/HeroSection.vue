@@ -10,18 +10,16 @@ import Icon from './Icon.vue'
 
     <div class="container">
       <div class="hero__content">
-        <img class="hero__logo" src="/logo-light.png" alt="Logo REGARD FRATERNEL" />
-        <p class="hero__kicker">Organisation Non Gouvernementale · Bénin</p>
-        <h1 class="hero__title">
-          REGARD FRATERNEL
-          <span>— des vies Humaines sauvées</span>
-        </h1>
-        <p class="hero__slogan-band">
-          <span class="hero__slogan-band__mark" aria-hidden="true">“</span>
-          <span class="hero__slogan-band__text">
-            Juste un <em>Regard</em> et des vies <em>Humaines</em> sont sauvées
-          </span>
-        </p>
+        <div class="hero__brand">
+          <img class="hero__logo" src="/logo-light.png" alt="Logo REGARD FRATERNEL" />
+          <div class="hero__heading">
+            <p class="hero__kicker">ONG à but non lucratif</p>
+            <h1 class="hero__title">
+              REGARD FRATERNEL (RF)
+              <span>Ensemble pour le bien-être de tous</span>
+            </h1>
+          </div>
+        </div>
         <div class="hero__cta">
           <a href="#actions" class="btn btn--primary">
             Découvrir nos actions

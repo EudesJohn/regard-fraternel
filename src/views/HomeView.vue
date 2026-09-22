@@ -6,9 +6,9 @@ import { useManySlots } from '../lib/useSectionSlots.js'
 import Icon from '../components/Icon.vue'
 
 const defaultSlides = [
-  { image: '/images/photos/don/don-01.jpg', kicker: 'ONG · République du Bénin', title: 'REGARD FRATERNEL', span: 'des vies Humaines sauvées' },
-  { image: '/images/photos/scolaire/scolaire-01.jpg', kicker: 'Campagne de distribution', title: 'Des kits scolaires', span: 'pour chaque enfant' },
-  { image: '/images/photos/sanitaire/sanitaire-01.jpg', kicker: 'Actions sur le terrain', title: 'Des infrastructures', span: 'au service des écoles' }
+  { image: '/images/photos/don/don-01.jpg', kicker: 'ONG à but non lucratif', title: 'REGARD FRATERNEL (RF)', span: 'Ensemble pour le bien-être de tous' },
+  { image: '/images/photos/scolaire/scolaire-01.jpg', kicker: 'Campagne de distribution', title: 'Des kits scolaires distribués', span: 'pour chaque enfant' },
+  { image: '/images/photos/sanitaire/sanitaire-01.jpg', kicker: 'Actions sur le terrain', title: 'Des infrastructures au service', span: 'des écoles' }
 ]
 
 // Emplacements fixes : images de mise en page (remplaçables depuis l'application d'administration)
@@ -42,9 +42,9 @@ onMounted(async () => {
   if (heroPhotos.length) {
     heroSlides.value = heroPhotos.map((p, i) => ({
       image: p.url,
-      kicker: i === 0 ? 'ONG · République du Bénin' : 'Actions sur le terrain',
-      title: p.caption || (i === 0 ? 'REGARD FRATERNEL' : 'Des actions concrètes'),
-      span: i === 0 ? 'des vies Humaines sauvées' : 'au service des communautés'
+      kicker: i === 0 ? 'ONG à but non lucratif' : 'Actions sur le terrain',
+      title: i === 0 ? 'REGARD FRATERNEL (RF)' : (p.caption || 'Des actions concrètes menées'),
+      span: i === 0 ? 'Ensemble pour le bien-être de tous' : 'au service des communautés'
     }))
     // Précharge la 1ʳᵉ diapositive (la plus importante) et les suivantes en miniature
     preloadImage(heroSlides.value[0].image)
@@ -81,18 +81,16 @@ const stats = [
 
       <div class="container">
         <div class="hero__content">
-          <img class="hero__logo" src="/logo-light.png" alt="Logo REGARD FRATERNEL" />
-          <p class="hero__kicker">{{ heroSlides[slide].kicker }}</p>
-          <h1 class="hero__title">
-            {{ heroSlides[slide].title }}
-            <span>{{ heroSlides[slide].span }}</span>
-          </h1>
-          <p class="hero__slogan-band">
-            <span class="hero__slogan-band__mark" aria-hidden="true">“</span>
-            <span class="hero__slogan-band__text">
-              Juste un <em>Regard</em> et des vies <em>Humaines</em> sont sauvées
-            </span>
-          </p>
+          <div class="hero__brand">
+            <img class="hero__logo" src="/logo-light.png" alt="Logo REGARD FRATERNEL" />
+            <div class="hero__heading">
+              <p class="hero__kicker">{{ heroSlides[slide].kicker }}</p>
+              <h1 class="hero__title">
+                {{ heroSlides[slide].title }}
+                <span>{{ heroSlides[slide].span }}</span>
+              </h1>
+            </div>
+          </div>
           <div class="hero__cta">
             <RouterLink to="/actions" class="btn btn--primary">
               Découvrir nos actions

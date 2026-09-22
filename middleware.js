@@ -251,7 +251,6 @@ function gatePage(error, requireEmail = false) {
     width: 62px;
     height: 62px;
     margin: 0 auto 18px;
-    border-radius: 50%;
     object-fit: cover;
   }
   .gate-eyebrow {

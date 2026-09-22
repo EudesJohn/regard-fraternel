@@ -33,7 +33,7 @@ const contact = [
           <h3 style="font-family: var(--font-display); color: var(--white); font-size: 1.4rem; margin-bottom: 12px">
             REGARD FRATERNEL
           </h3>
-          <p>{{ site.slogan }} — {{ site.devise }}.</p>
+          <p>{{ site.devise }}.</p>
         </div>
 
         <div>
