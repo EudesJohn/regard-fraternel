@@ -7,8 +7,16 @@ import Icon from '../components/Icon.vue'
 
 const defaultSlides = [
   { image: '/images/photos/don/don-01.jpg', kicker: 'ONG à but non lucratif', title: 'REGARD FRATERNEL (RF)', span: 'Ensemble pour le bien-être de tous' },
-  { image: '/images/photos/scolaire/scolaire-01.jpg', kicker: 'Campagne de distribution', title: 'Des kits scolaires distribués', span: 'pour chaque enfant' },
-  { image: '/images/photos/sanitaire/sanitaire-01.jpg', kicker: 'Actions sur le terrain', title: 'Des infrastructures au service', span: 'des écoles' }
+  { image: '/images/photos/scolaire/scolaire-01.jpg', kicker: 'Campagne de distribution', title: 'DES KITS SCOLAIRES AUX', span: 'enfants défavorisés' },
+  { image: '/images/photos/sanitaire/sanitaire-01.jpg', kicker: 'Actions sur le terrain', title: 'DES INFRASTRUCTURES', span: 'au service des écoles' }
+]
+
+// 2ᵉ ligne du titre pour chaque diapositive (index 0 = marque)
+const heroSpans = [
+  'Ensemble pour le bien-être de tous',
+  'enfants défavorisés',
+  'au service des écoles',
+  'au service des communautés'
 ]
 
 // Emplacements fixes : images de mise en page (remplaçables depuis l'application d'administration)
@@ -43,8 +51,8 @@ onMounted(async () => {
     heroSlides.value = heroPhotos.map((p, i) => ({
       image: p.url,
       kicker: i === 0 ? 'ONG à but non lucratif' : 'Actions sur le terrain',
-      title: i === 0 ? 'REGARD FRATERNEL (RF)' : (p.caption || 'Des actions concrètes menées'),
-      span: i === 0 ? 'Ensemble pour le bien-être de tous' : 'au service des communautés'
+      title: i === 0 ? 'REGARD FRATERNEL (RF)' : (p.caption || 'DES ACTIONS CONCRÈTES'),
+      span: heroSpans[i] || heroSpans[heroSpans.length - 1]
     }))
     // Précharge la 1ʳᵉ diapositive (la plus importante) et les suivantes en miniature
     preloadImage(heroSlides.value[0].image)
@@ -85,9 +93,14 @@ const stats = [
             <img class="hero__logo" src="/logo-light.png" alt="Logo REGARD FRATERNEL" />
             <div class="hero__heading">
               <p class="hero__kicker">{{ heroSlides[slide].kicker }}</p>
-              <h1 class="hero__title">
-                {{ heroSlides[slide].title }}
-                <span>{{ heroSlides[slide].span }}</span>
+              <h1 class="hero__title" :class="{ 'is-brand': slide === 0 }">
+                <!--
+                  Ligne 1 : mesure commune à toutes les diapositives, alignée au
+                  même point de départ et à la même hauteur que
+                  « REGARD FRATERNEL (RF) ».
+                -->
+                <span class="hero__line">{{ heroSlides[slide].title }}</span>
+                <span class="hero__line-sub">{{ heroSpans[slide] }}</span>
               </h1>
             </div>
           </div>

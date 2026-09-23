@@ -30,7 +30,7 @@ const contact = [
           <RouterLink to="/">
             <img class="nav__logo" src="/logo-light.png" alt="Logo REGARD FRATERNEL" />
           </RouterLink>
-          <h3 style="font-family: var(--font-display); color: var(--white); font-size: 1.4rem; margin-bottom: 12px">
+          <h3 class="footer__brand-name">
             REGARD FRATERNEL
           </h3>
           <p>{{ site.devise }}.</p>

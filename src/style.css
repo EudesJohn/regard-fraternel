@@ -27,6 +27,14 @@
   --font-display: 'Cormorant Garamond', 'Times New Roman', serif;
   --font-body: 'Hanken Grotesk', system-ui, sans-serif;
 
+  /*
+   * Mesure commune des 1ʳᵉs lignes de titres : « REGARD FRATERNEL (RF) » (hero),
+   * les autres diapositives du hero et les titres des en-têtes de pages partagent
+   * cette même taille. RF reste toujours sur une seule ligne ; un titre ne passe
+   * à la ligne que lorsqu'il ne tient plus à cette mesure.
+   */
+  --brand-line-size: clamp(2.4rem, 4.6vw, 3.35rem);
+
   /* Ombres & rayons */
   --shadow-sm: 0 2px 12px rgba(34, 25, 88, 0.08);
   --shadow-md: 0 12px 40px rgba(34, 25, 88, 0.14);
@@ -404,7 +412,11 @@ ul {
   position: relative;
   min-height: 100vh;
   display: flex;
-  align-items: center;
+  /* Alignement en haut : le contenu grandit vers le bas depuis un point d'ancrage
+     fixe. Un centrage vertical (align-items: center) recentrerait tout le bloc
+     quand un titre passe sur 2–3 lignes et décalerait la 1ʳᵉ ligne entre les
+     diapositives. */
+  align-items: flex-start;
   color: var(--white);
   overflow: hidden;
 }
@@ -443,7 +455,10 @@ ul {
 .hero__content {
   position: relative;
   z-index: 2;
-  padding-top: calc(var(--nav-h) + 30px);
+  /* Point de départ vertical FIXE et identique pour toutes les diapositives :
+     le bloc de titre démarre toujours à la même hauteur, que le titre fasse
+     1, 2 ou 3 lignes. */
+  padding-top: calc(var(--nav-h) + 96px);
   padding-bottom: 70px;
   max-width: 980px;
 }
@@ -467,6 +482,9 @@ ul {
 
 .hero__heading {
   min-width: 0;
+  /* Prend toute la place disponible à côté du logo : la mesure de la 1ʳᵉ ligne
+     est calculée sur la largeur réellement disponible. */
+  flex: 1 1 auto;
 }
 
 .hero__kicker {
@@ -491,15 +509,30 @@ ul {
 
 .hero__title {
   font-family: var(--font-display);
-  font-size: clamp(2.6rem, 5.6vw, 4.6rem);
-  font-weight: 700;
-  line-height: 1.02;
+  /* Mesure commune à toutes les diapositives : la 1ʳᵉ ligne part du même point
+     et a la même hauteur que « REGARD FRATERNEL (RF) ». */
+  font-size: var(--brand-line-size);
+  font-weight: 500;
+  line-height: 1.08;
   letter-spacing: 0.005em;
   margin-bottom: 0;
-  text-wrap: balance;
 }
 
-.hero__title span {
+/* Ligne 1 : point de départ et hauteur identiques pour toutes les diapositives.
+   On réserve la place de 2 lignes : les titres courts (RF) et longs occupent le
+   même espace → la 1ʳᵉ ligne démarre toujours exactement au même endroit, le
+   surplus passe proprement dans la ligne réservée en dessous. Pas de
+   « text-wrap: balance » ici : il redistribuerait les fragments sur les lignes
+   et ferait varier le début de la 1ʳᵉ ligne. */
+.hero__title .hero__line {
+  display: block;
+  line-height: 1.08;
+  min-height: 2.16em;
+}
+
+/* Ligne secondaire : le surplus de texte passe proprement en dessous, sans
+   décaler la structure ni modifier la mesure de la 1ʳᵉ ligne. */
+.hero__title .hero__line-sub {
   display: block;
   color: var(--rose-400);
   font-size: clamp(1.5rem, 2.6vw, 2.1rem);
@@ -507,6 +540,17 @@ ul {
   font-weight: 500;
   letter-spacing: 0.01em;
   margin-top: 8px;
+  line-height: 1.2;
+  overflow-wrap: break-word;
+}
+
+/* La diapositive marque (le nom de l'ONG) : en gras et TOUJOURS sur une seule
+   ligne. Le titre ne tenant jamais que sur 1 ligne, on ne réserve pas la 2ᵉ
+   ligne vide → l'espace entre « REGARD FRATERNEL (RF) » et sa suite est réduit. */
+.hero__title.is-brand .hero__line {
+  font-weight: 700;
+  white-space: nowrap;
+  min-height: 0;
 }
 
 .hero__cta {
@@ -553,11 +597,13 @@ ul {
     width: 118px;
   }
 
-  .hero__title {
-    font-size: clamp(2.3rem, 9vw, 2.9rem);
+  /* Sur mobile, la mesure commune est réduite mais identique partout :
+     « REGARD FRATERNEL (RF) » tient toujours sur une seule ligne. */
+  :root {
+    --brand-line-size: clamp(1.35rem, 6.2vw, 2.25rem);
   }
 
-  .hero__title span {
+  .hero__title .hero__line-sub {
     font-size: clamp(1.25rem, 5vw, 1.5rem);
   }
 
@@ -1433,6 +1479,18 @@ ul {
   margin-bottom: 20px;
 }
 
+/* Nom de l'ONG dans le pied de page, sur une seule ligne. */
+.footer__brand-name {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--white);
+  line-height: 1.16;
+  letter-spacing: 0.02em;
+  margin-bottom: 12px;
+  white-space: nowrap;
+}
+
 .footer__brand p {
   font-size: 0.95rem;
   max-width: 320px;
@@ -1554,10 +1612,12 @@ ul {
 
 .page-header__title {
   font-family: var(--font-display);
-  font-size: clamp(2.5rem, 5.4vw, 4.05rem);
+  /* Même mesure que la 1ʳᵉ ligne « REGARD FRATERNEL (RF) » du hero : le titre
+     garde cette taille et ne passe à la ligne que s'il ne tient plus. */
+  font-size: var(--brand-line-size);
   font-weight: 600;
-  line-height: 1.04;
-  letter-spacing: -0.015em;
+  line-height: 1.06;
+  letter-spacing: -0.01em;
   margin-bottom: 18px;
   text-wrap: balance;
 }
